@@ -1,0 +1,49 @@
+name: Public release hardening
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      NODE_PATH: ${{ github.workspace }}/engine/tests/stubs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax and release-boundary checks
+        run: |
+          node --check main.js
+          python3 -m py_compile optional/*.py
+          bash -n optional/task-audit.sh optional/vault-sync.sh
+          python3 engine/tests/test_public_release_hardening.py
+      - name: Plugin and engine regression suite
+        run: |
+          node engine/tests/clean_install_test.js
+          node engine/tests/tour_test.js
+          node engine/tests/library_test.js
+          node engine/tests/structure_test.js
+          node engine/tests/setup_test.js
+          node engine/tests/test_plugin_render.js
+          node engine/tests/parity_test.js
+          python3 engine/exam-readiness.py
+          for test in engine/tests/test_*.py; do python3 "$test"; done
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

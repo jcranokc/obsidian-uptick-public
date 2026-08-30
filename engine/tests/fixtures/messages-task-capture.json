@@ -1,0 +1,42 @@
+[
+  {
+    "rowid": 101,
+    "guid": "imessage-work-101",
+    "body": "Can you review the Salesforce access request and email me the status?",
+    "is_from_me": false,
+    "sender": "+15550000001",
+    "chat": "imessage;+;+15550000001"
+  },
+  {
+    "rowid": 102,
+    "guid": "imessage-ambiguous-102",
+    "body": "Please schedule the appointment for next week.",
+    "is_from_me": false,
+    "sender": "+15550000002",
+    "chat": "imessage;+;+15550000002"
+  },
+  {
+    "rowid": 103,
+    "guid": "imessage-system-103",
+    "body": "Your verification code is 123456",
+    "is_from_me": false,
+    "sender": "26096",
+    "chat": "sms;-;26096"
+  },
+  {
+    "rowid": 104,
+    "guid": "imessage-outgoing-104",
+    "body": "Please send the report",
+    "is_from_me": true,
+    "sender": "me",
+    "chat": "imessage;-;+15550000003"
+  },
+  {
+    "rowid": 105,
+    "guid": "imessage-deployment-105",
+    "body": "Please complete the deployment in person after the approval.",
+    "is_from_me": false,
+    "sender": "+15550000004",
+    "chat": "imessage;+;+15550000004"
+  }
+]

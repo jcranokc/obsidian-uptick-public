@@ -1,0 +1,4222 @@
+/* Uptick — plugin styles.
+ * Scoped to .lifeos (dashboards) and .lifeos-nav (sidebar) so nothing else in
+ * the vault is affected. Palette derives from theme variables where sensible,
+ * with explicit accents for the dashboard chrome.
+ */
+
+.lifeos,
+.lifeos-nav {
+  --los-accent: #7c5cff;
+  --los-accent-2: #22d3ee;
+  --los-accent-3: #38bdf8;
+  --los-warn: #f5b301;
+  --los-panel: var(--background-primary-alt, #1b1b21);
+  --los-panel-2: var(--background-secondary, #16161a);
+  --los-line: var(--background-modifier-border, #2a2a33);
+  --los-text: var(--text-normal);
+  --los-muted: var(--text-muted);
+  --los-faint: var(--text-faint);
+  --los-radius: 10px;
+}
+
+/* ============================ sidebar ============================ */
+
+.lifeos-nav {
+  padding: 10px 8px;
+  font-size: 13px;
+}
+
+.lifeos-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 14px;
+}
+
+.lifeos-nav-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--los-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.03em;
+}
+
+.lifeos-nav-title { font-weight: 650; color: var(--los-text); line-height: 1.15; }
+.lifeos-nav-sub { font-size: 11px; color: var(--los-faint); }
+
+.lifeos-nav-section {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--los-faint);
+  padding: 14px 10px 6px;
+  font-weight: 600;
+}
+
+.lifeos-nav-subsection {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--los-faint);
+  padding: 8px 10px 4px;
+}
+
+.lifeos-nav-item,
+.lifeos-nav-quick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--los-text);
+  transition: background 90ms ease;
+}
+
+.lifeos-nav-quick {
+  border: 1px solid var(--los-line);
+  margin: 4px 2px;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.lifeos-nav-item:hover,
+.lifeos-nav-quick:hover { background: var(--los-panel); }
+
+.lifeos-nav-icon { color: var(--los-muted); width: 16px; text-align: center; }
+.lifeos-nav-spacer { height: 18px; }
+
+/* ============================ dashboards ============================ */
+
+.lifeos { font-size: 14px; color: var(--los-text); }
+
+.lifeos-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.lifeos-h1 {
+  margin: 0;
+  font-size: 1.6em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  border: none;
+  padding: 0;
+}
+
+.lifeos-sub { color: var(--los-muted); font-size: 0.86em; margin-top: 2px; }
+
+.lifeos-head-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ---- grid ----
+ *
+ * Cards used to be pinned to fixed grid columns (col1/col2/col3). CSS Grid
+ * makes every row as tall as its tallest card, so a short card left a void
+ * beneath it stretching down to whatever sat next to it. Instead each card is
+ * routed into a lane that packs tight and is independent of its neighbours:
+ *
+ *   .lifeos-row      a horizontal band
+ *     .lifeos-lane-wide    2/3 — the primary column
+ *       .lifeos-pair       two small cards side by side
+ *     .lifeos-lane-narrow  1/3 — sidebar column
+ *   .lifeos-band     full width, breaks the row (the embedded web view)
+ *
+ * Lane heights are now unrelated, so nothing stretches to match anything else.
+ */
+
+.lifeos-grid { display: flex; flex-direction: column; gap: 14px; }
+
+.lifeos-row { display: flex; gap: 14px; align-items: flex-start; }
+
+.lifeos-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.lifeos-lane-wide { flex: 2 1 0; }
+.lifeos-lane-narrow { flex: 1 1 0; }
+
+/* A lane with nothing in it must not reserve its share of the width, and a
+ * row whose lanes are all empty must not contribute a gap. */
+.lifeos-lane:empty { display: none; }
+.lifeos-row:not(:has(> .lifeos-lane:not(:empty))) { display: none; }
+
+.lifeos-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+/* An odd card left at the end of a pair spans the full width rather than
+ * sitting next to a hole. */
+.lifeos-pair > :only-child { grid-column: 1 / -1; }
+
+.lifeos-band { width: 100%; }
+
+@media (max-width: 1100px) {
+  .lifeos-row { flex-direction: column; }
+  .lifeos-lane-wide,
+  .lifeos-lane-narrow { flex: 1 1 auto; width: 100%; }
+}
+
+@media (max-width: 720px) {
+  .lifeos-pair { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---- card ---- */
+
+.lifeos-card {
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-top: 2px solid var(--los-accent);
+  border-radius: var(--los-radius);
+  padding: 12px 14px 14px;
+  min-width: 0;
+}
+
+.lifeos-card.col2 { border-top-color: var(--los-accent); }
+.lifeos-card.col3 { border-top-color: var(--los-accent-3); }
+.lifeos-card.col1 { border-top-color: var(--los-accent-2); }
+
+.lifeos-cardhead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.lifeos-cardglyph { color: var(--los-accent); font-size: 12px; }
+
+.lifeos-cardtitle {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--los-muted);
+}
+
+.lifeos-notes { margin-top: 14px; border-top-color: var(--los-accent); }
+
+/* ---- stats ---- */
+
+.lifeos-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-stat:last-child { border-bottom: none; }
+.lifeos-stat-label { color: var(--los-muted); font-size: 0.92em; }
+.lifeos-stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ---- lists ---- */
+
+.lifeos-list { display: flex; flex-direction: column; gap: 4px; }
+
+.lifeos-listitem {
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--los-panel);
+  line-height: 1.45;
+}
+
+.lifeos-empty { color: var(--los-faint); font-style: italic; font-size: 0.9em; padding: 2px 0; }
+.lifeos-muted { color: var(--los-faint); }
+
+.lifeos-microlabel {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--los-faint);
+  margin-bottom: 2px;
+}
+
+/* ---- meetings ---- */
+
+.lifeos-meeting {
+  border: 1px solid var(--los-line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  margin-bottom: 8px;
+  background: var(--los-panel);
+}
+
+.lifeos-meeting-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.lifeos-time {
+  font-family: var(--font-monospace);
+  font-size: 0.95em;
+  letter-spacing: 0.02em;
+  color: var(--los-text);
+}
+
+.lifeos-meeting-name {
+  font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 12ch;
+  line-height: 1.35;
+}
+.lifeos-meeting-actions { margin-left: auto; display: flex; gap: 6px; }
+
+.lifeos-meeting-cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--los-line);
+}
+
+.lifeos-badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--los-accent) 22%, transparent);
+  color: var(--los-accent);
+  border: 1px solid color-mix(in srgb, var(--los-accent) 40%, transparent);
+  white-space: nowrap;
+}
+
+.lifeos-badge-cal {
+  background: color-mix(in srgb, var(--los-accent-3) 18%, transparent);
+  color: var(--los-accent-3);
+  border-color: color-mix(in srgb, var(--los-accent-3) 40%, transparent);
+}
+
+.lifeos-chip-cal {
+  border-color: color-mix(in srgb, var(--los-accent-3) 45%, transparent);
+  color: var(--los-accent-3);
+}
+
+.lifeos-badge-alt {
+  background: color-mix(in srgb, var(--los-accent-2) 18%, transparent);
+  color: var(--los-accent-2);
+  border-color: color-mix(in srgb, var(--los-accent-2) 40%, transparent);
+}
+
+.lifeos-importsec { margin-bottom: 12px; }
+.lifeos-importsec:last-child { margin-bottom: 0; }
+
+.lifeos-importhead {
+  font-size: 0.9em;
+  font-weight: 650;
+  color: var(--los-text);
+  margin-bottom: 5px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--los-line);
+}
+
+.lifeos-badge-warn {
+  background: color-mix(in srgb, var(--los-warn) 18%, transparent);
+  color: var(--los-warn);
+  border-color: color-mix(in srgb, var(--los-warn) 40%, transparent);
+}
+
+/* ---- tasks ---- */
+
+.lifeos-task {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-task:last-of-type { border-bottom: none; }
+
+.lifeos-task-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--los-accent-3);
+  flex: none;
+}
+.lifeos-task-checkbox {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin: 1px 8px 0 0;
+  accent-color: var(--los-accent-2);
+}
+
+.lifeos-task-text { flex: 1; min-width: 0; line-height: 1.4; }
+.lifeos-task-due { font-size: 0.8em; color: var(--los-faint); font-variant-numeric: tabular-nums; }
+
+/* ---- end of day / links ---- */
+
+.lifeos-eod,
+.lifeos-linkrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-eod:last-child,
+.lifeos-linkrow:last-child { border-bottom: none; }
+
+.lifeos-linkrow { cursor: pointer; }
+.lifeos-linkrow:hover { color: var(--los-accent); }
+.lifeos-chev { color: var(--los-faint); }
+
+/* ---- buttons ---- */
+
+.lifeos-btn {
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  color: var(--los-text);
+  border-radius: 8px;
+  padding: 7px 13px;
+  font-size: 12.5px;
+  cursor: pointer;
+  line-height: 1.4;
+  white-space: nowrap;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lifeos-btn:hover:not(:disabled) { border-color: var(--los-accent); color: var(--los-accent); }
+.lifeos-btn:disabled { opacity: 0.5; cursor: default; }
+
+.lifeos-btn-primary {
+  background: var(--los-accent);
+  border-color: var(--los-accent);
+  color: #fff;
+}
+.lifeos-btn-primary:hover:not(:disabled) { filter: brightness(1.1); color: #fff; }
+
+/* ---- add affordance ---- */
+
+.lifeos-add { margin-top: 10px; }
+
+/* A real target, not a bare text link. Sits flush left so it still reads as a
+ * secondary action rather than a primary button. */
+.lifeos-add-trigger {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--los-accent);
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 7px 10px;
+  margin-left: -10px;
+  border-radius: 8px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.4;
+}
+.lifeos-add-trigger:hover {
+  background: var(--los-panel);
+  border-color: var(--los-line);
+}
+
+.lifeos-add-form { display: flex; gap: 8px; align-items: center; }
+
+.lifeos-input,
+.lifeos-textarea {
+  flex: 1;
+  min-width: 0;
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  border-radius: 7px;
+  padding: 5px 9px;
+  color: var(--los-text);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.lifeos-textarea { width: 100%; min-height: 62px; resize: vertical; }
+.lifeos-input:focus,
+.lifeos-textarea:focus { outline: none; border-color: var(--los-accent); }
+
+.lifeos-capture { margin-top: 10px; }
+.lifeos-capture-bar { display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px; }
+
+/* ---- home: tiles ---- */
+
+.lifeos-head-right { text-align: right; }
+.lifeos-date { font-weight: 600; }
+
+.lifeos-tiles {
+  display: grid;
+  /* auto-fit so the row absorbs however many tiles a view shows */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 620px) { .lifeos-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.lifeos-tile {
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.lifeos-tile-head { display: flex; align-items: center; gap: 6px; }
+.lifeos-tile-glyph { color: var(--los-accent); font-size: 11px; }
+
+.lifeos-tile-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--los-muted);
+}
+
+.lifeos-tile-value {
+  font-size: 1.7em;
+  font-weight: 700;
+  line-height: 1.15;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lifeos-tile-sub { font-size: 11px; color: var(--los-faint); }
+
+/* Clickable tiles announce themselves: a border lift on hover, and the hint
+ * replaces the sub-label so the action is discoverable without a tooltip. */
+.lifeos-tile.is-clickable {
+  cursor: pointer;
+  transition: border-color 90ms ease, background 90ms ease, transform 90ms ease;
+}
+.lifeos-tile.is-clickable:hover {
+  border-color: var(--los-accent);
+  background: var(--los-panel);
+}
+.lifeos-tile.is-clickable:active { transform: translateY(1px); }
+
+.lifeos-tile-hint {
+  font-size: 11px;
+  color: var(--los-accent);
+  display: none;
+}
+.lifeos-tile.is-clickable:hover .lifeos-tile-sub { display: none; }
+.lifeos-tile.is-clickable:hover .lifeos-tile-hint { display: block; }
+
+/* Touch devices have no hover: show the hint permanently instead of the
+ * sub-label flipping on a hover state that never fires. */
+@media (hover: none) {
+  .lifeos-tile.is-clickable .lifeos-tile-hint { display: block; }
+}
+
+.lifeos-stat.is-clickable { cursor: pointer; margin: 0 -6px; padding-left: 6px; padding-right: 6px; border-radius: 6px; }
+.lifeos-stat.is-clickable:hover { background: var(--los-panel); }
+.lifeos-stat.is-clickable:hover .lifeos-stat-label { color: var(--los-accent); }
+
+/* ---- home: schedule rows ---- */
+
+.lifeos-schedrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-schedrow:last-child { border-bottom: none; }
+
+.lifeos-schedname { flex: 1; min-width: 0; }
+.lifeos-schedact { margin-left: auto; }
+
+.lifeos-ellipsis {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lifeos-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.lifeos-capture-input { width: 100%; }
+.lifeos-capture-bar-left { justify-content: flex-start; }
+
+/* ---- home: calendar ---- */
+
+.lifeos-cal {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.lifeos-cal-dow {
+  text-align: center;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--los-faint);
+  padding-bottom: 4px;
+}
+
+.lifeos-cal-pad { aspect-ratio: 1; }
+
+.lifeos-cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11.5px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--los-muted);
+  font-variant-numeric: tabular-nums;
+  position: relative;
+}
+
+.lifeos-cal-day:hover { background: var(--los-panel); color: var(--los-text); }
+
+.lifeos-cal-day.has-events::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--los-accent-2);
+}
+
+.lifeos-cal-day.is-today {
+  background: var(--los-accent);
+  color: #fff;
+  font-weight: 700;
+}
+.lifeos-cal-day.is-today.has-events::after { background: #fff; }
+
+.lifeos-cal-list { margin-top: 10px; border-top: 1px solid var(--los-line); padding-top: 8px; }
+
+/* ---- top bar + breadcrumbs ---- */
+
+.lifeos-topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  flex-wrap: wrap;
+}
+
+.lifeos-topbrand { display: flex; align-items: center; gap: 10px; }
+.lifeos-topbrand-title { font-weight: 700; line-height: 1.1; }
+.lifeos-topbrand-sub { font-size: 11px; color: var(--los-faint); }
+
+.lifeos-topsearch {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.lifeos-topsearch .lifeos-input { flex: 1; min-width: 0; }
+
+.lifeos-topacts { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.lifeos-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--los-faint);
+  margin-bottom: 14px;
+  padding-left: 2px;
+  flex-wrap: wrap;
+}
+.lifeos-crumb { cursor: pointer; }
+.lifeos-crumb:hover { color: var(--los-accent); }
+.lifeos-crumb-cur { color: var(--los-text); font-weight: 600; }
+.lifeos-crumb-sep { opacity: 0.5; }
+
+/* ---- meeting record ---- */
+
+.lifeos-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-left: 3px solid var(--los-accent-2);
+  border-radius: var(--los-radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.lifeos-banner-kicker {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--los-accent-2);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.lifeos-banner-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.lifeos-tiles-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .lifeos-tiles-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* grid-2 passes no placement class, so its cards pair two-across in the wide
+ * lane and the empty narrow lane collapses. No extra rules needed. */
+
+.lifeos-detailgrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 800px) { .lifeos-detailgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.lifeos-detailval { line-height: 1.4; }
+.lifeos-prose { line-height: 1.55; white-space: pre-wrap; }
+
+.lifeos-edit { margin-left: auto; padding: 2px 8px; font-size: 11px; }
+.lifeos-actions-left { justify-content: flex-start; }
+.lifeos-colcount { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ---- weekly ---- */
+
+.lifeos-weekday {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--los-line);
+  cursor: pointer;
+}
+.lifeos-weekday:last-child { border-bottom: none; }
+.lifeos-weekday:hover { background: var(--los-panel); }
+
+.lifeos-weekday-label {
+  width: 130px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.92em;
+}
+
+.lifeos-weekday-items { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 0; }
+
+.lifeos-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  cursor: pointer;
+}
+.lifeos-chip:hover { border-color: var(--los-accent); color: var(--los-accent); }
+
+/* ---- checkboxes ---- */
+
+.lifeos-eod-label { flex: 1; cursor: pointer; }
+
+.lifeos-check {
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--los-line);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+  margin-right: 9px;
+  flex: none;
+  color: transparent;
+}
+.lifeos-check:hover { border-color: var(--los-accent); }
+.lifeos-check.is-checked {
+  background: var(--los-accent);
+  border-color: var(--los-accent);
+  color: #fff;
+}
+
+.lifeos-eod { justify-content: flex-start; }
+
+/* ---- hide Obsidian chrome on dashboard notes ----
+ * The dashboards render their own title and header, so the inline title and
+ * the Properties panel are duplicate noise. Scoped to `.life-os`, so ordinary
+ * notes keep both. Frontmatter is still editable in source mode (⌘P → Toggle
+ * reading view) and via the Uptick panels themselves. */
+
+.life-os .inline-title,
+.life-os .metadata-container,
+.life-os .metadata-properties,
+.life-os .metadata-properties-heading,
+.life-os .metadata-add-button,
+.life-os .metadata-content {
+  display: none !important;
+}
+
+/* Reclaim the space the properties block left behind. */
+.life-os .markdown-preview-sizer > .mod-header,
+.life-os .cm-sizer > .mod-header {
+  padding-top: 0;
+  min-height: 0;
+}
+
+/* ---- tabs ---- */
+
+.lifeos-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 9px;
+  border-bottom: 1px solid var(--los-line);
+}
+
+.lifeos-tab {
+  font-size: 11.5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  color: var(--los-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.lifeos-tab:hover { color: var(--los-text); }
+.lifeos-tab.is-on {
+  color: var(--los-accent);
+  border-bottom-color: var(--los-accent);
+  font-weight: 600;
+}
+
+.lifeos-tabbody { min-height: 60px; }
+
+/* ---- end of day buckets ---- */
+
+.lifeos-eodbucket {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-eodbucket:last-child { border-bottom: none; }
+
+.lifeos-eodhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.lifeos-eodname { font-size: 0.9em; font-weight: 600; }
+
+.lifeos-eodcount {
+  font-size: 10px;
+  min-width: 18px;
+  text-align: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  color: var(--los-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- notes toolbar ---- */
+
+.lifeos-toolbar {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.lifeos-tool {
+  min-width: 26px;
+  height: 24px;
+  padding: 0 7px;
+  font-size: 11.5px;
+  border-radius: 5px;
+  border: 1px solid var(--los-line);
+  background: var(--los-panel);
+  color: var(--los-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+.lifeos-tool:hover { border-color: var(--los-accent); color: var(--los-accent); }
+
+/* highlighted week in the weekly calendar */
+.lifeos-cal-day.in-week { background: color-mix(in srgb, var(--los-accent) 16%, transparent); }
+.lifeos-cal-day.in-week.is-today { background: var(--los-accent); }
+
+/* ---- series editor ---- */
+
+.lifeos-seriescard { border-top-color: var(--los-accent-2); margin-bottom: 12px; }
+.lifeos-seriesname { font-weight: 650; font-size: 1em; color: var(--los-text); }
+
+.lifeos-callout {
+  border: 1px solid color-mix(in srgb, var(--los-warn) 40%, transparent);
+  background: color-mix(in srgb, var(--los-warn) 10%, transparent);
+  border-radius: var(--los-radius);
+  padding: 10px 13px;
+  margin-bottom: 14px;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+.lifeos-callout-title { font-weight: 650; color: var(--los-warn); margin-bottom: 3px; }
+
+.lifeos-inlinewarn {
+  margin-top: 10px;
+  font-size: 0.86em;
+  color: var(--los-warn);
+}
+
+/* ---- form ---- */
+
+.lifeos-form { display: flex; flex-direction: column; gap: 11px; margin-bottom: 6px; }
+.lifeos-formrow { display: flex; flex-direction: column; gap: 4px; }
+
+.lifeos-formlabel {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--los-muted);
+  font-weight: 600;
+}
+
+.lifeos-formhelp { font-size: 11px; color: var(--los-faint); line-height: 1.4; }
+
+.lifeos-daypick { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.lifeos-daychip {
+  font-size: 10.5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--los-line);
+  background: var(--los-panel);
+  color: var(--los-muted);
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+.lifeos-daychip:hover { border-color: var(--los-accent); }
+.lifeos-daychip.is-on {
+  background: var(--los-accent);
+  border-color: var(--los-accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.lifeos-modal select.lifeos-input { appearance: auto; }
+
+/* ---- embedded web app ---- */
+
+.lifeos-webbar { display: flex; gap: 5px; margin-bottom: 8px; flex-wrap: wrap; }
+
+.lifeos-webbody {
+  border: 1px solid var(--los-line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--los-panel);
+  min-height: 240px;
+}
+
+/* Clips the scaled frame and owns the visible height, which JS sets to the
+ * scaled laptop height so the card hugs the page exactly. */
+.lifeos-webwrap {
+  --los-web-scale: 1;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Laid out at full laptop size, then scaled down as one piece. The page is
+ * rendered at 1440x900 and shown whole rather than cropped. */
+.lifeos-webframe {
+  display: flex;
+  width: 1440px;
+  height: 900px;
+  border: none;
+  background: #fff; /* the remote page paints its own background */
+  transform: scale(var(--los-web-scale));
+  transform-origin: top left;
+}
+
+.lifeos-webzoom {
+  font-size: 11px;
+  color: var(--los-faint);
+  margin-left: auto;
+  align-self: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lifeos-webph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 240px;
+  text-align: center;
+  padding: 20px;
+}
+
+.lifeos-webph-sub { font-size: 11px; color: var(--los-faint); }
+
+/* ---- email rows ---- */
+
+.lifeos-email {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-email:last-of-type { border-bottom: none; }
+
+.lifeos-email-main { flex: 1; min-width: 0; cursor: pointer; }
+
+.lifeos-email-subject {
+  font-size: 13px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.lifeos-email-main:hover .lifeos-email-subject { color: var(--los-accent); }
+
+.lifeos-email-sub {
+  font-size: 11px;
+  color: var(--los-faint);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- attendee picker ---- */
+
+.lifeos-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; min-height: 26px; }
+
+.lifeos-attendee {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--los-accent) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--los-accent) 40%, transparent);
+  color: var(--los-text);
+}
+.lifeos-attendee-warn { font-size: 10px; color: var(--los-warn); }
+.lifeos-attendee-x { cursor: pointer; opacity: 0.7; font-size: 13px; line-height: 1; }
+.lifeos-attendee-x:hover { opacity: 1; color: var(--los-warn); }
+
+.lifeos-results {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 9px;
+  border: 1px solid var(--los-line);
+  border-radius: 8px;
+}
+
+.lifeos-result {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-result:last-child { border-bottom: none; }
+.lifeos-result:hover { background: var(--los-panel); }
+.lifeos-result.is-on { background: color-mix(in srgb, var(--los-accent) 14%, transparent); }
+.lifeos-result.is-on .lifeos-result-name { color: var(--los-accent); font-weight: 600; }
+
+.lifeos-result-main { min-width: 0; flex: 1; }
+.lifeos-result-name { font-size: 13px; }
+.lifeos-result-sub { font-size: 11px; color: var(--los-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- modal ---- */
+
+.lifeos-modal .lifeos-modal-title { margin: 0 0 6px; font-size: 1.05em; }
+.lifeos-modal .lifeos-modal-help {
+  color: var(--los-muted);
+  font-size: 0.86em;
+  margin-bottom: 10px;
+  line-height: 1.45;
+}
+.lifeos-modal .lifeos-input,
+.lifeos-modal .lifeos-textarea { width: 100%; }
+
+/* ============ breathing room and touch targets ============
+ *
+ * Button rows were laid out for a wide desktop pane and read as cramped
+ * everywhere else — especially on a phone, where the targets fell well under
+ * the ~44px Apple asks for. These rules widen the gaps, and any device with a
+ * coarse pointer gets larger controls rather than a scaled-down desktop UI. */
+
+.lifeos-head-actions,
+.lifeos-banner-actions,
+.lifeos-topacts,
+.lifeos-webbar,
+.lifeos-capture-bar,
+.lifeos-inline-actions,
+.lifeos-meeting-actions {
+  gap: 8px;
+  row-gap: 8px;
+}
+
+.lifeos-head { gap: 18px; margin-bottom: 20px; }
+.lifeos-card { padding: 14px 16px 16px; }
+.lifeos-cardhead { gap: 9px; margin-bottom: 12px; }
+.lifeos-meeting { padding: 11px 12px; margin-bottom: 10px; }
+.lifeos-meeting-top { gap: 10px; row-gap: 8px; }
+.lifeos-grid { gap: 16px; }
+.lifeos-tiles { gap: 12px; }
+.lifeos-tile { padding: 12px 14px; }
+
+/* Rows people tap: give them height instead of hairline padding. */
+.lifeos-linkrow,
+.lifeos-eod,
+.lifeos-stat { padding-top: 9px; padding-bottom: 9px; }
+.lifeos-task { padding: 7px 0; }
+.lifeos-listitem { padding: 7px 10px; }
+
+.lifeos-input,
+.lifeos-textarea { padding: 7px 11px; min-height: 32px; }
+
+.lifeos-chip { padding: 4px 10px; }
+.lifeos-badge { padding: 3px 9px; }
+
+@media (pointer: coarse) {
+  .lifeos-btn,
+  .lifeos-add-trigger,
+  .lifeos-input { min-height: 44px; padding: 10px 16px; font-size: 14px; }
+
+  .lifeos-tool { min-width: 40px; height: 40px; font-size: 14px; }
+
+  .lifeos-head-actions,
+  .lifeos-banner-actions,
+  .lifeos-topacts,
+  .lifeos-webbar,
+  .lifeos-capture-bar,
+  .lifeos-meeting-actions { gap: 10px; row-gap: 10px; }
+
+  .lifeos-linkrow,
+  .lifeos-eod,
+  .lifeos-stat { padding-top: 13px; padding-bottom: 13px; }
+
+  .lifeos-daychip { padding: 10px 14px; font-size: 12px; }
+  .lifeos-result { padding: 12px 12px; }
+  .lifeos-chip { padding: 7px 12px; font-size: 12px; }
+  .lifeos-attendee { padding: 7px 12px; font-size: 13px; }
+  .lifeos-attendee-x { font-size: 17px; padding: 0 2px; }
+  .lifeos-check { width: 22px; height: 22px; font-size: 13px; margin-right: 12px; }
+}
+
+/* Phone-width layout: one column, and button rows stop competing for space. */
+@media (max-width: 720px) {
+  .lifeos-card { padding: 14px; }
+  .lifeos-head { flex-direction: column; align-items: stretch; }
+  .lifeos-head-right { text-align: left; }
+  .lifeos-head-actions,
+  .lifeos-banner-actions { width: 100%; }
+  .lifeos-banner { flex-direction: column; }
+  .lifeos-topsearch { order: 3; width: 100%; flex-basis: 100%; }
+  .lifeos-topacts { order: 2; }
+  .lifeos-detailgrid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .lifeos-weekday { flex-direction: column; gap: 8px; }
+  .lifeos-weekday-label { width: auto; }
+  .lifeos-meeting-actions { margin-left: 0; width: 100%; }
+  .lifeos-meeting-actions .lifeos-btn { flex: 1; }
+}
+
+/* ---- errors ---- */
+
+.lifeos-error {
+  border: 1px solid var(--text-error, #e05252);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-error, #e05252);
+  font-size: 0.9em;
+}
+.lifeos-error pre { white-space: pre-wrap; font-size: 11px; margin: 6px 0 0; }
+
+/* Width is handled by Minimal's own `max` cssclass, which every dashboard note
+ * carries alongside `life-os`. Don't fight the theme's line-width machinery
+ * here — if a dashboard renders narrow, the note is missing `- max`. */
+
+.lifeos { width: 100%; }
+
+/* ---- reference footer ----
+ * These links were plain Markdown under the dashboard and rendered in the
+ * default note style, which read as a separate page bolted to the bottom.
+ * As a card they inherit the same surface, border and type scale as the rest. */
+
+.lifeos-reflist {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  gap: 8px;
+}
+
+.lifeos-refitem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 11px;
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.lifeos-refitem:hover {
+  border-color: var(--los-accent);
+  background: var(--los-panel-2);
+}
+
+.lifeos-refname { font-weight: 600; font-size: 0.92em; }
+.lifeos-refhint {
+  color: var(--los-muted);
+  font-size: 0.78em;
+  line-height: 1.35;
+}
+
+@media (pointer: coarse) {
+  .lifeos-refitem { padding: 12px 13px; min-height: 44px; }
+}
+
+/* ---- owned note body ----
+ * Daily / weekly / monthly notes keep their headings only as storage; every
+ * section is rendered and edited as a card above. Shown raw they trailed the
+ * dashboard as a column of empty headings, reading like a different page.
+ * Only notes whose block carries the marker are folded, so meeting and email
+ * notes — where the body is real content — are untouched. */
+
+.markdown-preview-sizer > div:has(.lifeos-owns-body) ~ div { display: none; }
+.cm-content > div:has(.lifeos-owns-body) ~ .cm-line,
+.cm-content > div:has(.lifeos-owns-body) ~ .cm-embed-block { display: none; }
+
+/* ---- message body ----
+ * The email body replaces the old Source card, which said only that the body
+ * lived somewhere else. Rendered in a scroll box so a long newsletter cannot
+ * push the rest of the page away, and as <pre> so it stays verbatim. */
+
+.lifeos-messagebody {
+  margin: 6px 0 0;
+  max-height: 620px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 0.92em;
+  line-height: 1.6;
+  color: var(--text-normal);
+}
+
+/* Consecutive lines keep their breaks — a flattened table stays a table —
+ * while blank lines in the source become the space between paragraphs. */
+.lifeos-msg-p {
+  margin: 0 0 0.85em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.lifeos-msg-p:last-child { margin-bottom: 0; }
+
+/* Quoted reply history, set back so the new text reads first. */
+.lifeos-msg-quote {
+  margin: 0 0 0.85em;
+  padding: 2px 0 2px 12px;
+  border-left: 2px solid var(--los-line);
+  color: var(--los-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Inert by design — see renderMessageBody. Tracking URLs run to hundreds of
+ * characters, so this clamps rather than letting one line dominate. */
+.lifeos-msg-url {
+  margin: 0 0 0.85em;
+  padding: 7px 10px;
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-radius: 6px;
+  font-family: var(--font-monospace, monospace);
+  font-size: 0.82em;
+  color: var(--los-muted);
+  overflow-wrap: anywhere;
+  max-height: 4.2em;
+  overflow: hidden;
+  user-select: all;
+}
+.lifeos-msg-url:hover { max-height: none; color: var(--text-normal); }
+
+.lifeos-messagefoot {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  color: var(--los-muted);
+  font-size: 0.8em;
+}
+.lifeos-messagefoot .lifeos-microlabel { margin: 0; }
+
+/* ---- read mail ----
+ * Read email is collapsed, never removed: the rows stay one click away but
+ * stop competing with what still needs attention. */
+
+.lifeos-readmail {
+  margin-top: 10px;
+  border-top: 1px solid var(--los-line);
+  padding-top: 8px;
+}
+
+.lifeos-readmail-summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 2px;
+  color: var(--los-muted);
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.lifeos-readmail-summary::-webkit-details-marker { display: none; }
+.lifeos-readmail-summary::before {
+  content: "▸";
+  font-size: 0.9em;
+  transition: transform 120ms ease;
+}
+.lifeos-readmail[open] > .lifeos-readmail-summary::before { transform: rotate(90deg); }
+.lifeos-readmail-summary:hover { color: var(--text-normal); }
+
+.lifeos-email.is-read { opacity: 0.62; }
+.lifeos-email.is-read:hover { opacity: 1; }
+
+@media (pointer: coarse) {
+  .lifeos-readmail-summary { min-height: 44px; }
+}
+
+/* ---- people on a message ---- */
+
+.lifeos-people-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-people-row:last-child { border-bottom: none; }
+
+.lifeos-people-label {
+  flex: 0 0 44px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--los-muted);
+  padding-top: 3px;
+}
+
+.lifeos-people-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.lifeos-person {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 9px;
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  border-radius: 999px;
+  max-width: 100%;
+}
+
+.lifeos-person-name {
+  font-size: 0.86em;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lifeos-person-addr {
+  font-size: 0.76em;
+  color: var(--los-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 620px) {
+  .lifeos-people-row { flex-direction: column; gap: 5px; }
+  .lifeos-people-label { padding-top: 0; }
+}
+
+/* ---- provenance box ----
+ * The import trail, boxed so it reads as a footnote rather than as another
+ * wall of content competing with the meeting's own sections. */
+
+.lifeos-provenance {
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  border-radius: 8px;
+  padding: 10px 13px;
+  margin-top: 4px;
+}
+
+.lifeos-provline {
+  font-size: 0.85em;
+  line-height: 1.55;
+  color: var(--los-muted);
+  padding: 2px 0;
+  overflow-wrap: anywhere;
+}
+.lifeos-provline:first-child { color: var(--text-normal); }
+
+/* Subheadings inside an imported section, so a long summary keeps the
+ * grouping it arrived with instead of flattening into one list. */
+.lifeos-groophead {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--los-accent-2, var(--los-muted));
+  margin: 12px 0 5px;
+}
+.lifeos-groophead:first-child { margin-top: 2px; }
+.lifeos-listitem.is-sub { margin-left: 16px; opacity: 0.82; }
+
+/* Source badges in the merged Upcoming list — a row is either a Uptick series
+ * or an Apple Calendar event, and the badge is the only thing that differs. */
+.lifeos-badge-cal {
+  background: color-mix(in srgb, var(--los-accent-3) 18%, transparent);
+  color: var(--los-accent-3);
+  border: 1px solid color-mix(in srgb, var(--los-accent-3) 35%, transparent);
+}
+.lifeos-badge-series {
+  background: color-mix(in srgb, var(--los-accent-2) 18%, transparent);
+  color: var(--los-accent-2);
+  border: 1px solid color-mix(in srgb, var(--los-accent-2) 35%, transparent);
+}
+
+.lifeos-task.is-clickable,
+.lifeos-schedrow.is-clickable { cursor: pointer; }
+.lifeos-task.is-clickable:hover,
+.lifeos-schedrow.is-clickable:hover { background: var(--los-panel); }
+
+/* Task status, following the Kanban's model (Uncategorized / Doing / Done). */
+.lifeos-status-doing {
+  background: color-mix(in srgb, var(--los-warn) 16%, transparent);
+  color: var(--los-warn);
+  border: 1px solid color-mix(in srgb, var(--los-warn) 35%, transparent);
+}
+.lifeos-status-uncategorized {
+  background: color-mix(in srgb, var(--los-muted) 14%, transparent);
+  color: var(--los-muted);
+  border: 1px solid var(--los-line);
+}
+.lifeos-status-done {
+  background: color-mix(in srgb, var(--los-accent-2) 16%, transparent);
+  color: var(--los-accent-2);
+  border: 1px solid color-mix(in srgb, var(--los-accent-2) 35%, transparent);
+}
+.lifeos-task-dot.is-doing { background: var(--los-warn); }
+.lifeos-task-dot.is-done { background: var(--los-accent-2); }
+
+/* ---- on-demand sync ----
+ * The buttons kick the same launchd jobs the scheduler runs, so this card
+ * shows each job's real state rather than a local spinner. */
+
+.lifeos-synclist { display: flex; flex-direction: column; gap: 4px; }
+
+.lifeos-syncrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-syncrow:last-child { border-bottom: none; }
+
+.lifeos-syncmain { flex: 1; min-width: 0; }
+.lifeos-syncname { font-weight: 600; font-size: 0.92em; }
+
+.lifeos-syncstate { font-size: 0.8em; margin-top: 1px; }
+.lifeos-syncstate.is-ok      { color: var(--los-accent-2); }
+.lifeos-syncstate.is-running { color: var(--los-warn); }
+.lifeos-syncstate.is-failed  { color: var(--text-error, #ef4444); }
+.lifeos-syncstate.is-idle    { color: var(--los-muted); }
+
+.lifeos-syncsched {
+  font-size: 0.74em;
+  color: var(--los-faint, var(--los-muted));
+  margin-top: 1px;
+}
+
+/* Priority level and Salesforce ticket, lifted out of the task text. */
+.lifeos-prio {
+  background: color-mix(in srgb, var(--los-accent) 16%, transparent);
+  color: var(--los-accent);
+  border: 1px solid color-mix(in srgb, var(--los-accent) 35%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-ticket {
+  background: var(--los-panel);
+  color: var(--los-muted);
+  border: 1px solid var(--los-line);
+  font-family: var(--font-monospace, monospace);
+  font-size: 0.74em;
+}
+.lifeos-ticket.is-link { cursor: pointer; }
+.lifeos-ticket.is-link:hover { color: var(--los-accent-3); border-color: var(--los-accent-3); }
+
+/* ---- photo gallery ----
+ * Fixed aspect box so a portrait and a landscape shot do not resize the card
+ * as the gallery rotates — the surrounding layout stays still. */
+
+.lifeos-photoframe {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--los-radius);
+  border: 1px solid var(--los-line);
+  background: var(--los-panel);
+}
+
+.lifeos-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+.lifeos-photo.is-fading { opacity: 0; }
+
+.lifeos-photocap {
+  margin-top: 6px;
+  font-size: 0.74em;
+  color: var(--los-faint, var(--los-muted));
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- daily: schedule as a time rail ----
+ * A day is a sequence, so the schedule is drawn as one. A hairline runs down
+ * the card with each start time sitting on it, and rows hang off it. This is
+ * the page's one deliberate flourish; everything around it stays plain.
+ * Structure only — no new colour is introduced. */
+
+.lifeos-grid-daily .lifeos-meeting {
+  position: relative;
+  /* 12:30 PM is the widest realistic time; a narrower column wraps it. */
+  padding: 11px 0 11px 92px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-grid-daily .lifeos-meeting:last-child { border-bottom: none; }
+
+/* the rail */
+.lifeos-grid-daily .lifeos-meeting::before {
+  content: "";
+  position: absolute;
+  left: 76px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  /* Brighter than the card borders so the rail reads as one continuous line
+   * rather than disappearing into the row dividers it crosses. */
+  background: color-mix(in srgb, var(--los-accent) 30%, transparent);
+}
+.lifeos-grid-daily .lifeos-meeting:first-child::before { top: 19px; }
+.lifeos-grid-daily .lifeos-meeting:last-child::before { bottom: calc(100% - 24px); }
+
+/* the node on the rail */
+.lifeos-grid-daily .lifeos-meeting::after {
+  content: "";
+  position: absolute;
+  left: 73px;
+  top: 16px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--los-panel-2);
+  border: 1.5px solid var(--los-accent);
+}
+
+.lifeos-grid-daily .lifeos-meeting .lifeos-time {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 66px;
+  text-align: right;
+  white-space: nowrap;
+  font-size: 0.78em;
+  color: var(--los-muted);
+}
+
+.lifeos-grid-daily .lifeos-meeting-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lifeos-grid-daily .lifeos-meeting-name { font-weight: 600; }
+
+/* Counts, when present, tuck under the row instead of forming a second band. */
+.lifeos-grid-daily .lifeos-meeting-cols {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+}
+.lifeos-grid-daily .lifeos-meeting-col {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.lifeos-grid-daily .lifeos-meeting-col .lifeos-microlabel { margin: 0; }
+
+@media (max-width: 620px) {
+  .lifeos-grid-daily .lifeos-meeting { padding-left: 0; }
+  .lifeos-grid-daily .lifeos-meeting::before,
+  .lifeos-grid-daily .lifeos-meeting::after { display: none; }
+  .lifeos-grid-daily .lifeos-meeting .lifeos-time {
+    position: static; width: auto; text-align: left; display: block; margin-bottom: 2px;
+  }
+}
+
+/* ---- home: next up ----
+ * The one thing a dashboard is opened to learn. It gets the page's largest
+ * type and the only accent bar in the card; the schedule under it stays quiet
+ * so this reads first. */
+
+.lifeos-nextup {
+  border-left: 2px solid var(--los-accent);
+  padding: 2px 0 2px 14px;
+  margin: 2px 0 16px;
+}
+.lifeos-nextup.is-clickable { cursor: pointer; }
+.lifeos-nextup.is-clickable:hover .lifeos-nextup-name { color: var(--los-accent); }
+
+.lifeos-nextup-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--los-muted);
+  margin-bottom: 3px;
+}
+
+.lifeos-nextup-line {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--los-muted);
+}
+
+.lifeos-nextup-time {
+  font-family: var(--font-monospace, monospace);
+  font-size: 1.05em;
+  color: var(--text-normal);
+}
+.lifeos-nextup-name {
+  font-size: 1.25em;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text-normal);
+  transition: color 120ms ease;
+}
+.lifeos-nextup-away {
+  margin-left: auto;
+  font-size: 0.82em;
+  color: var(--los-accent-2);
+  white-space: nowrap;
+}
+
+.lifeos-actions-left { justify-content: flex-start; }
+
+/* ==========================================================================
+   Sky band — weather on the daily page
+   ==========================================================================
+   Weather is atmosphere, so it is drawn as one: a slim band whose background
+   moves with the conditions rather than a card with an icon in it. The motion
+   is all CSS transforms and background-position — no timers, no repaint
+   storms — and it stops entirely under prefers-reduced-motion.
+
+   Every colour is a tint of the existing accents; the band changes mood by
+   changing which accent leads, not by introducing a new palette.
+   ========================================================================== */
+
+.lifeos-sky {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 14px 18px;
+  margin: 0 0 14px;
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  overflow: hidden;
+  background: var(--los-panel-2);
+  isolation: isolate;
+}
+
+/* The animated layer. Sits behind the text and never intercepts a click. */
+.lifeos-sky-fx {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* ---- clear day: a slow warm glow that drifts across the band ---- */
+.lifeos-sky.is-sun .lifeos-sky-fx {
+  background:
+    radial-gradient(120px 120px at 12% 40%,
+      color-mix(in srgb, var(--los-warn) 45%, transparent), transparent 70%);
+  animation: sky-drift 26s ease-in-out infinite alternate;
+}
+.lifeos-sky.is-sun .lifeos-sky-glyph {
+  color: var(--los-warn);
+  animation: sky-pulse 6s ease-in-out infinite;
+}
+
+/* ---- night: a faint cool wash ---- */
+.lifeos-sky.is-stars .lifeos-sky-fx {
+  background:
+    radial-gradient(90px 90px at 80% 30%,
+      color-mix(in srgb, var(--los-accent) 40%, transparent), transparent 70%);
+  animation: sky-drift 34s ease-in-out infinite alternate;
+}
+.lifeos-sky.is-stars .lifeos-sky-glyph { color: var(--los-accent); }
+
+/* ---- cloud: two soft masses drifting at different speeds ---- */
+.lifeos-sky.is-cloud .lifeos-sky-fx,
+.lifeos-sky.is-fog .lifeos-sky-fx {
+  background:
+    radial-gradient(140px 60px at 20% 55%, color-mix(in srgb, var(--los-accent-3) 26%, transparent), transparent 70%),
+    radial-gradient(180px 70px at 70% 40%, color-mix(in srgb, var(--los-accent-3) 18%, transparent), transparent 70%);
+  background-repeat: no-repeat;
+  animation: sky-clouds 40s linear infinite;
+}
+.lifeos-sky.is-cloud .lifeos-sky-glyph,
+.lifeos-sky.is-fog .lifeos-sky-glyph { color: var(--los-accent-3); }
+.lifeos-sky.is-fog .lifeos-sky-fx { filter: blur(3px); }
+
+/* ---- rain: fine diagonal streaks falling on a loop ---- */
+.lifeos-sky.is-rain .lifeos-sky-fx {
+  background-image: repeating-linear-gradient(
+    114deg,
+    transparent 0 9px,
+    color-mix(in srgb, var(--los-accent-3) 55%, transparent) 9px 10px);
+  background-size: 100% 60px;
+  animation: sky-rain 0.9s linear infinite;
+}
+.lifeos-sky.is-rain .lifeos-sky-glyph { color: var(--los-accent-3); }
+
+/* ---- snow: soft dots settling, slower and gentler than rain ---- */
+.lifeos-sky.is-snow .lifeos-sky-fx {
+  background-image:
+    radial-gradient(2px 2px at 12% 20%, var(--text-normal), transparent),
+    radial-gradient(2px 2px at 42% 60%, var(--text-normal), transparent),
+    radial-gradient(2px 2px at 68% 25%, var(--text-normal), transparent),
+    radial-gradient(2px 2px at 86% 70%, var(--text-normal), transparent);
+  background-size: 100% 80px;
+  opacity: 0.45;
+  animation: sky-snow 7s linear infinite;
+}
+.lifeos-sky.is-snow .lifeos-sky-glyph { color: var(--text-normal); }
+
+@keyframes sky-drift  { from { transform: translateX(-6%); } to { transform: translateX(14%); } }
+@keyframes sky-pulse  { 0%, 100% { opacity: 1; } 50% { opacity: 0.62; } }
+@keyframes sky-clouds { from { background-position: -10% 0, 110% 0; }
+                        to   { background-position: 110% 0, -10% 0; } }
+@keyframes sky-rain   { from { background-position: 0 0; }   to { background-position: 0 60px; } }
+@keyframes sky-snow   { from { background-position: 0 0; }   to { background-position: 0 80px; } }
+
+/* Motion is decoration here; the reading stays identical without it. */
+@media (prefers-reduced-motion: reduce) {
+  .lifeos-sky-fx,
+  .lifeos-sky-glyph { animation: none !important; }
+}
+
+/* ---- content ---- */
+
+.lifeos-sky-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.lifeos-sky-glyph { font-size: 26px; line-height: 1; }
+
+.lifeos-sky-temp {
+  font-size: 1.7em;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-sky-cond {
+  font-size: 0.78em;
+  color: var(--los-muted);
+  margin-top: 1px;
+}
+
+.lifeos-sky-range {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.8em;
+  color: var(--los-muted);
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-sky-hi { color: var(--text-normal); }
+.lifeos-sky-pop { color: var(--los-accent-3); }
+
+.lifeos-sky-hours {
+  display: flex;
+  gap: 14px;
+  margin-left: auto;
+}
+.lifeos-sky-hour { text-align: center; min-width: 26px; }
+.lifeos-sky-hourlabel {
+  font-size: 0.66em;
+  color: var(--los-faint, var(--los-muted));
+  letter-spacing: 0.04em;
+}
+.lifeos-sky-hourtemp {
+  font-size: 0.82em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+
+@media (max-width: 820px) {
+  .lifeos-sky-hours { display: none; }
+}
+@media (max-width: 560px) {
+  .lifeos-sky { flex-wrap: wrap; gap: 12px; }
+  .lifeos-sky-range { margin-left: auto; }
+}
+
+/* ---- weather page ----
+ * Temperature and precipitation are separate measures, so they are separate
+ * plots sharing an x-axis — never two y-scales on one frame. Each plot is a
+ * single series, so neither carries a legend; its heading names it.
+ * Hues are validated against the dark surface (see WX_TEMP / WX_RAIN). */
+
+.lifeos-sky.is-clickable { cursor: pointer; }
+.lifeos-sky.is-clickable:hover { border-color: var(--los-accent); }
+
+.lifeos-wx-plot {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  color: var(--text-normal);
+  margin: 2px 0 4px;
+}
+.lifeos-wx-plot.is-short { height: 70px; }
+.lifeos-wx-plot svg { width: 100%; height: 100%; display: block; }
+
+.lifeos-wx-readout {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.76em;
+  color: var(--los-muted);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.lifeos-wx-hint {
+  font-size: 0.72em;
+  color: var(--los-faint, var(--los-muted));
+  margin-top: 2px;
+}
+
+/* ---- day range bars ---- */
+
+.lifeos-wx-legend {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.74em;
+  color: var(--los-muted);
+  margin-bottom: 8px;
+}
+.lifeos-wx-swatch {
+  width: 22px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #2b86c9, #c07f00);
+}
+
+.lifeos-wx-days { display: flex; flex-direction: column; }
+
+.lifeos-wx-day {
+  display: grid;
+  grid-template-columns: 62px 1fr 34px minmax(90px, 3fr) 34px 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--los-line);
+  font-size: 0.84em;
+}
+.lifeos-wx-day:last-child { border-bottom: none; }
+
+.lifeos-wx-dayname { font-weight: 600; }
+.lifeos-wx-daycond {
+  color: var(--los-muted);
+  font-size: 0.92em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lifeos-wx-lo, .lifeos-wx-hi {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.lifeos-wx-lo { color: var(--los-muted); }
+
+.lifeos-wx-track {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--los-line);
+}
+.lifeos-wx-bar {
+  position: absolute;
+  top: 0;
+  height: 6px;
+  border-radius: 3px;
+  /* cool at the low end, warm at the high end — the bar reads as a range */
+  background: linear-gradient(90deg, #2b86c9, #c07f00);
+}
+
+.lifeos-wx-pop {
+  font-size: 0.86em;
+  color: #2b86c9;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-wx-pop.is-none { color: var(--los-faint, var(--los-muted)); }
+
+/* ---- the table view ---- */
+
+.lifeos-wx-table { font-size: 0.82em; }
+.lifeos-wx-trow {
+  display: grid;
+  grid-template-columns: 58px 52px 52px 52px 74px 52px 1fr;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--los-line);
+}
+.lifeos-wx-trow:last-child { border-bottom: none; }
+.lifeos-wx-trow.is-head {
+  font-size: 0.86em;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--los-muted);
+}
+.lifeos-wx-cell {
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .lifeos-wx-day { grid-template-columns: 56px 30px 1fr 30px 38px; }
+  .lifeos-wx-daycond { display: none; }
+  .lifeos-wx-trow { grid-template-columns: 52px 46px 46px 46px 1fr; }
+  .lifeos-wx-trow > :nth-child(6), .lifeos-wx-trow > :nth-child(7) { display: none; }
+}
+
+/* Inline link text lifted out of imported prose. Rendered as text, not an
+   anchor — these URLs come from outside the vault and a one-click link out of
+   a note is how a bad address gets followed by accident. */
+.lifeos-inlinelink {
+  color: var(--los-accent-3);
+  border-bottom: 1px dotted color-mix(in srgb, var(--los-accent-3) 50%, transparent);
+}
+
+/* ---- transcript ----
+ * A transcript is a conversation, so it is set as one: speaker turns with the
+ * note-taker distinguished, in a scroll box that opens closed. Measure is held
+ * near 70 characters — long verbatim prose is unreadable at full card width. */
+
+.lifeos-tsc { margin-top: 4px; }
+
+.lifeos-tsc-summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 2px;
+  color: var(--los-muted);
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.lifeos-tsc-summary::-webkit-details-marker { display: none; }
+.lifeos-tsc-summary::before {
+  content: "▸";
+  transition: transform 120ms ease;
+}
+.lifeos-tsc[open] > .lifeos-tsc-summary::before { transform: rotate(90deg); }
+.lifeos-tsc-summary:hover { color: var(--text-normal); }
+
+.lifeos-tsc-body {
+  max-height: 460px;
+  overflow-y: auto;
+  padding: 10px 14px;
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  border-radius: 8px;
+}
+
+.lifeos-tsc-turn { margin-bottom: 12px; }
+.lifeos-tsc-turn:last-child { margin-bottom: 0; }
+
+.lifeos-tsc-who {
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--los-muted);
+  margin-bottom: 3px;
+}
+/* The note-taker is the one voice you can always attribute, so it is the one
+   that carries the accent. */
+.lifeos-tsc-who.is-me { color: var(--los-accent-2); }
+
+.lifeos-tsc-text {
+  font-size: 0.88em;
+  line-height: 1.65;
+  max-width: 70ch;
+  color: var(--text-normal);
+}
+
+@media (pointer: coarse) {
+  .lifeos-tsc-summary { min-height: 44px; }
+}
+
+/* ==========================================================================
+   Mobile
+   ==========================================================================
+   Scoped entirely to body.is-mobile, which Obsidian sets on phones and tablets.
+   Nothing here can reach the desktop layout — width breakpoints alone could
+   not make that promise, since a narrow desktop window trips them too.
+
+   Three problems this addresses, in order of how much they hurt:
+     1. every lane collapsed to one column, so cards stacked but kept desktop
+        padding and type — a lot of scrolling for very little content;
+     2. rows were sized for a cursor, not a fingertip;
+     3. continuous animation competing with scroll on a weaker GPU.
+   ========================================================================== */
+
+body.is-mobile .lifeos {
+  --los-radius: 12px;
+  font-size: 15px;
+}
+
+/* ---- structure: one column, tighter ---- */
+
+body.is-mobile .lifeos-row { flex-direction: column; gap: 10px; }
+body.is-mobile .lifeos-lane-wide,
+body.is-mobile .lifeos-lane-narrow { flex: 1 1 auto; width: 100%; }
+body.is-mobile .lifeos-lane { gap: 10px; }
+body.is-mobile .lifeos-pair { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+body.is-mobile .lifeos-grid { gap: 10px; }
+
+body.is-mobile .lifeos-card { padding: 12px 13px 13px; }
+
+/* Stat strips: two across reads; four across turns numbers into confetti. */
+body.is-mobile .lifeos-tiles,
+body.is-mobile .lifeos-tiles-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+body.is-mobile .lifeos-tile { padding: 10px 11px; }
+body.is-mobile .lifeos-tile-value { font-size: 1.5em; }
+
+/* ---- touch targets ---- */
+
+body.is-mobile .lifeos-btn {
+  min-height: 40px;
+  padding: 9px 14px;
+}
+body.is-mobile .lifeos-meeting,
+body.is-mobile .lifeos-schedrow,
+body.is-mobile .lifeos-task,
+body.is-mobile .lifeos-listitem,
+body.is-mobile .lifeos-linkrow,
+body.is-mobile .lifeos-email { min-height: 44px; }
+
+/* A tap highlight is the only feedback a finger gets — there is no hover. */
+body.is-mobile .is-tappable { -webkit-tap-highlight-color: transparent; }
+body.is-mobile .is-tappable:active { background: var(--los-panel); }
+
+/* ---- header: the action row was a wall of buttons at phone width ---- */
+
+body.is-mobile .lifeos-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+body.is-mobile .lifeos-head-actions,
+body.is-mobile .lifeos-banner-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 6px;
+  width: 100%;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+body.is-mobile .lifeos-head-actions::-webkit-scrollbar,
+body.is-mobile .lifeos-banner-actions::-webkit-scrollbar { display: none; }
+body.is-mobile .lifeos-head-actions .lifeos-btn,
+body.is-mobile .lifeos-banner-actions .lifeos-btn { flex: 0 0 auto; }
+
+body.is-mobile .lifeos-h1 { font-size: 1.35em; }
+
+/* The top bar is desktop chrome — brand, a search box that hands off to
+ * Obsidian's own search, and a launcher row. On a phone all three duplicate
+ * navigation the app already provides, and the row wraps badly. */
+body.is-mobile .lifeos-topsearch { display: none; }
+body.is-mobile .lifeos-topbar { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
+body.is-mobile .lifeos-topbrand-sub { display: none; }
+
+/* ---- the time rail needs the width it does not have ---- */
+
+body.is-mobile .lifeos-grid-daily .lifeos-meeting { padding-left: 0; }
+body.is-mobile .lifeos-grid-daily .lifeos-meeting::before,
+body.is-mobile .lifeos-grid-daily .lifeos-meeting::after { display: none; }
+body.is-mobile .lifeos-grid-daily .lifeos-meeting .lifeos-time {
+  position: static;
+  width: auto;
+  text-align: left;
+  display: block;
+  margin-bottom: 3px;
+}
+
+/* ---- sky band: stack, and stop the animation ---- */
+
+body.is-mobile .lifeos-sky { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+body.is-mobile .lifeos-sky-hours { display: none; }
+/* Continuous repaint is the one thing guaranteed to fight scrolling on a
+   phone. The band keeps its colour; it just stops moving. */
+body.is-mobile .lifeos-sky-fx,
+body.is-mobile .lifeos-sky-glyph { animation: none !important; }
+
+/* ---- media ---- */
+
+body.is-mobile .lifeos-photoframe { aspect-ratio: 3 / 2; }
+body.is-mobile .lifeos-messagebody { max-height: 340px; }
+body.is-mobile .lifeos-tsc-body { max-height: 320px; }
+
+/* ---- weather page: charts need a floor, tables need fewer columns ---- */
+
+body.is-mobile .lifeos-wx-plot { height: 150px; }
+body.is-mobile .lifeos-wx-plot.is-short { height: 56px; }
+body.is-mobile .lifeos-wx-day {
+  grid-template-columns: 52px 28px 1fr 28px 36px;
+  font-size: 0.8em;
+}
+body.is-mobile .lifeos-wx-daycond { display: none; }
+body.is-mobile .lifeos-wx-trow { grid-template-columns: 48px 44px 44px 1fr; }
+body.is-mobile .lifeos-wx-trow > :nth-child(5),
+body.is-mobile .lifeos-wx-trow > :nth-child(6),
+body.is-mobile .lifeos-wx-trow > :nth-child(7) { display: none; }
+/* Hover readouts do not exist on a touch screen. */
+body.is-mobile .lifeos-wx-readout,
+body.is-mobile .lifeos-wx-hint { display: none; }
+
+/* ---- long content that overflowed ---- */
+
+body.is-mobile .lifeos-people-row { flex-direction: column; gap: 5px; }
+body.is-mobile .lifeos-meeting-actions { flex-wrap: wrap; }
+body.is-mobile .lifeos-reflist { grid-template-columns: minmax(0, 1fr); }
+body.is-mobile .lifeos-nextup-line { gap: 6px; }
+body.is-mobile .lifeos-nextup-away { margin-left: 0; }
+
+/* Wide content scrolls inside its own box rather than the page going sideways. */
+body.is-mobile .lifeos table,
+body.is-mobile .lifeos-wx-table { overflow-x: auto; }
+body.is-mobile .lifeos { overflow-x: hidden; }
+
+
+/* ================================================================ XP layer */
+/* The gamification surface: the Home header, per-day XP, difficulty pills, the
+ * achievement browser, and the unlock celebration. Every number shown here is
+ * read from Character.md, XP Ledger.md, or achievements-cache.json — nothing in
+ * this file or its JS computes XP. */
+
+/* ---- shared progress bar ---- */
+
+.lifeos-bar {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--los-line);
+  overflow: hidden;
+  width: 100%;
+}
+.lifeos-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--los-accent), var(--los-accent-3));
+  transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lifeos-bar-lg { height: 11px; }
+.lifeos-bar-sm { height: 5px; }
+
+/* ---- Home header ---- */
+
+.lifeos-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 14px 18px;
+  align-items: start;
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-top: 2px solid var(--los-accent);
+  border-radius: var(--los-radius);
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+@media (max-width: 900px) { .lifeos-hero { grid-template-columns: 1fr; } }
+
+.lifeos-hero-main { display: flex; gap: 16px; align-items: center; min-width: 0; }
+
+.lifeos-hero-crest {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 62px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, var(--los-accent), var(--los-accent-3));
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(124, 92, 255, 0.28);
+  transition: transform 140ms ease;
+}
+.lifeos-hero-crest:hover { transform: translateY(-2px); }
+.lifeos-hero-level { font-size: 26px; font-weight: 800; line-height: 1; }
+.lifeos-hero-levellabel { font-size: 8px; letter-spacing: 0.16em; opacity: 0.85; }
+
+.lifeos-hero-body { flex: 1 1 auto; min-width: 0; }
+.lifeos-hero-top {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 7px;
+}
+.lifeos-hero-rank { font-size: 1.18em; font-weight: 700; letter-spacing: -0.01em; }
+.lifeos-hero-total { color: var(--los-muted); font-variant-numeric: tabular-nums; }
+.lifeos-hero-streak {
+  font-size: 0.78em;
+  font-weight: 600;
+  color: var(--los-accent-2);
+  border: 1px solid var(--los-line);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.lifeos-hero-sub {
+  margin-top: 6px;
+  font-size: 0.78em;
+  color: var(--los-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.lifeos-hero-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+.lifeos-herostat {
+  flex: 1 1 90px;
+  min-width: 0;
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  padding: 8px 10px;
+}
+.lifeos-herostat.is-clickable { cursor: pointer; transition: border-color 140ms ease; }
+.lifeos-herostat.is-clickable:hover { border-color: var(--los-accent); }
+.lifeos-herostat-value {
+  font-size: 1.25em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.lifeos-herostat.neg .lifeos-herostat-value { color: var(--text-error, #e05561); }
+.lifeos-herostat-sub { font-size: 0.72em; color: var(--los-faint); }
+
+.lifeos-hero-near { grid-column: 1 / -1; cursor: pointer; }
+.lifeos-nearrow { margin-top: 6px; }
+.lifeos-nearhead {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.8em;
+  margin-bottom: 3px;
+}
+.lifeos-nearname { font-weight: 600; }
+.lifeos-nearpct { color: var(--los-faint); font-variant-numeric: tabular-nums; }
+
+/* ---- per-day XP card ---- */
+
+.lifeos-dayxp { text-align: center; padding: 4px 0 10px; }
+.lifeos-dayxp-net {
+  font-size: 2.1em;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--los-accent-2);
+}
+.lifeos-dayxp-net.is-neg { color: var(--text-error, #e05561); }
+.lifeos-dayxp-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+  margin-top: 3px;
+}
+.lifeos-dayxp-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 0;
+  font-size: 0.86em;
+  border-top: 1px solid var(--los-line);
+}
+.lifeos-dayxp-kind { color: var(--los-muted); }
+.lifeos-dayxp-amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+.lifeos-dayxp-amt.is-neg { color: var(--text-error, #e05561); }
+.lifeos-dayxp-achhead { margin-top: 12px; }
+
+.lifeos-dayach {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.lifeos-dayach-badge {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, var(--los-accent), var(--los-accent-3));
+  color: #fff;
+  overflow: hidden;
+  font-size: 12px;
+}
+.lifeos-dayach-img { width: 100%; height: 100%; object-fit: cover; }
+.lifeos-dayach-text { min-width: 0; }
+.lifeos-dayach-name { font-weight: 600; font-size: 0.88em; }
+.lifeos-dayach-cond {
+  font-size: 0.76em;
+  color: var(--los-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- difficulty pill ---- */
+
+.lifeos-diff {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px;
+  margin-left: 8px;
+  border-radius: 999px;
+  font-size: 0.72em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.lifeos-diff-xp { opacity: 0.75; font-variant-numeric: tabular-nums; }
+
+/* Effort runs cool to warm — deliberately not the red/amber the priority pill
+ * already uses for importance, so the two axes stay visually distinct. */
+.lifeos-diff-1 { background: rgba(125, 145, 170, 0.16); color: #64748b; }
+.lifeos-diff-2 { background: rgba(56, 152, 168, 0.16); color: #0e7490; }
+.lifeos-diff-3 { background: rgba(90, 140, 220, 0.16); color: #3b6fd4; }
+.lifeos-diff-4 { background: rgba(150, 110, 210, 0.18); color: #7c4dcc; }
+.lifeos-diff-5 { background: rgba(200, 110, 160, 0.20); color: #b03a83; }
+.theme-dark .lifeos-diff-1 { color: #a3b3c7; }
+.theme-dark .lifeos-diff-2 { color: #5ec6d8; }
+.theme-dark .lifeos-diff-3 { color: #8fb0f0; }
+.theme-dark .lifeos-diff-4 { color: #bfa0f0; }
+.theme-dark .lifeos-diff-5 { color: #f0a0cc; }
+
+/* ---- achievements browser ---- */
+
+.lifeos-achtotal {
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+.lifeos-achtotal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.lifeos-achtotal-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+}
+.lifeos-achtotal-pct { font-size: 1.3em; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.lifeos-achfilters { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 12px; }
+.lifeos-achsearch {
+  flex: 1 1 220px;
+  min-width: 0;
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  padding: 6px 10px;
+  color: var(--los-text);
+  font-size: 0.86em;
+}
+.lifeos-achchips { display: flex; gap: 5px; flex-wrap: wrap; }
+.lifeos-chip {
+  border: 1px solid var(--los-line);
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 0.76em;
+  cursor: pointer;
+  color: var(--los-muted);
+  user-select: none;
+  transition: all 130ms ease;
+}
+.lifeos-chip:hover { border-color: var(--los-accent); color: var(--los-text); }
+.lifeos-chip.is-on {
+  background: var(--los-accent);
+  border-color: var(--los-accent);
+  color: #fff;
+}
+
+.lifeos-achsection { margin-bottom: 20px; }
+.lifeos-achsection-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  align-items: baseline;
+  margin-bottom: 9px;
+}
+.lifeos-achsection-head .lifeos-bar { grid-column: 1 / -1; }
+.lifeos-achsection-name { font-weight: 700; font-size: 0.98em; }
+.lifeos-achsection-count {
+  font-size: 0.78em;
+  color: var(--los-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.lifeos-achgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 9px;
+}
+.lifeos-achcard {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  position: relative;
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  padding: 10px 11px;
+  cursor: pointer;
+  min-width: 0;
+  transition: transform 140ms ease, border-color 140ms ease;
+}
+.lifeos-achcard:hover { transform: translateY(-2px); border-color: var(--los-accent); }
+.lifeos-achcard.is-locked { opacity: 0.62; }
+.lifeos-achcard.is-manual { opacity: 0.5; }
+.lifeos-achcard.is-unlocked { border-left: 3px solid var(--los-accent-2); }
+
+.lifeos-achcard-badge {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--los-line);
+  color: var(--los-muted);
+  font-size: 17px;
+}
+.lifeos-achcard.is-unlocked .lifeos-achcard-badge {
+  background: linear-gradient(150deg, var(--los-accent), var(--los-accent-3));
+  color: #fff;
+}
+.lifeos-achcard-img { width: 100%; height: 100%; object-fit: cover; }
+.lifeos-achcard-body { min-width: 0; flex: 1 1 auto; }
+.lifeos-achcard-name { font-weight: 600; font-size: 0.9em; }
+.lifeos-achcard-cond {
+  font-size: 0.75em;
+  color: var(--los-faint);
+  margin: 2px 0 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.lifeos-achcard-foot { display: flex; align-items: center; gap: 8px; }
+.lifeos-achcard-foot .lifeos-bar { flex: 1 1 auto; }
+.lifeos-achcard-prog,
+.lifeos-achcard-date,
+.lifeos-achcard-manual {
+  font-size: 0.72em;
+  color: var(--los-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.lifeos-achcard.is-unlocked .lifeos-achcard-date { color: var(--los-accent-2); }
+.lifeos-achcard-tier {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+}
+
+.lifeos-achrow { display: flex; gap: 10px; padding: 7px 0; cursor: pointer; }
+.lifeos-achrow + .lifeos-achrow { border-top: 1px solid var(--los-line); }
+.lifeos-achrow-glyph { color: var(--los-accent); font-size: 13px; padding-top: 2px; }
+.lifeos-achrow-body { flex: 1 1 auto; min-width: 0; }
+.lifeos-achrow-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.lifeos-achrow-name { font-weight: 600; font-size: 0.88em; }
+.lifeos-achrow-count {
+  font-size: 0.76em;
+  color: var(--los-faint);
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-achrow-cond { font-size: 0.75em; color: var(--los-faint); margin-top: 4px; }
+
+/* Tier accents. Applied to the left edge so they read at a glance without
+ * turning the grid into a colour chart. */
+.lifeos-tier-bronze.is-unlocked { border-left-color: #b87333; }
+.lifeos-tier-silver.is-unlocked { border-left-color: #9aa5b1; }
+.lifeos-tier-gold.is-unlocked { border-left-color: #e0a53a; }
+.lifeos-tier-platinum.is-unlocked { border-left-color: #6ee7f0; }
+.lifeos-tier-mythic.is-unlocked { border-left-color: #f472b6; }
+.lifeos-tier-hidden.is-unlocked { border-left-color: #a78bfa; }
+
+/* ---- unlock celebration ---- */
+
+.lifeos-achmodal {
+  max-width: 420px;
+  border-radius: 18px;
+  overflow: hidden;
+  text-align: center;
+}
+.lifeos-achmodal .modal-content { padding: 0; }
+
+.lifeos-ach-burst {
+  position: relative;
+  padding: 34px 26px 22px;
+  overflow: hidden;
+  --ach-a: var(--los-accent);
+  --ach-b: var(--los-accent-3);
+}
+.lifeos-ach-bronze { --ach-a: #b87333; --ach-b: #e0a06a; }
+.lifeos-ach-silver { --ach-a: #8e99a6; --ach-b: #cfd8e3; }
+.lifeos-ach-gold { --ach-a: #d99a1f; --ach-b: #f7d774; }
+.lifeos-ach-platinum { --ach-a: #22d3ee; --ach-b: #a5f3fc; }
+.lifeos-ach-mythic { --ach-a: #db2777; --ach-b: #f9a8d4; }
+.lifeos-ach-hidden { --ach-a: #7c3aed; --ach-b: #c4b5fd; }
+
+/* A slow sweep behind the medal. Sits under everything and never intercepts
+ * clicks. */
+.lifeos-ach-rays {
+  position: absolute;
+  inset: -60% -10%;
+  background: conic-gradient(from 0deg,
+    transparent 0deg, var(--ach-b) 12deg, transparent 26deg,
+    transparent 90deg, var(--ach-b) 102deg, transparent 116deg,
+    transparent 180deg, var(--ach-b) 192deg, transparent 206deg,
+    transparent 270deg, var(--ach-b) 282deg, transparent 296deg);
+  opacity: 0.14;
+  pointer-events: none;
+  animation: lifeos-spin 14s linear infinite;
+}
+
+.lifeos-ach-medal {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(150deg, var(--ach-a), var(--ach-b));
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--ach-a) 22%, transparent),
+              0 12px 34px rgba(0, 0, 0, 0.34);
+  animation: lifeos-pop 620ms cubic-bezier(0.16, 1.3, 0.4, 1) both;
+}
+.lifeos-ach-art { width: 100%; height: 100%; object-fit: cover; }
+.lifeos-ach-glyph { font-size: 54px; color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+
+.lifeos-ach-eyebrow {
+  position: relative;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ach-a);
+  font-weight: 700;
+  animation: lifeos-rise 460ms ease both 180ms;
+}
+.lifeos-ach-name {
+  position: relative;
+  margin: 6px 0 2px;
+  font-size: 1.5em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  border: none;
+  animation: lifeos-rise 460ms ease both 260ms;
+}
+.lifeos-ach-tier {
+  position: relative;
+  font-size: 0.82em;
+  color: var(--los-muted);
+  font-weight: 600;
+  animation: lifeos-rise 460ms ease both 320ms;
+}
+.lifeos-ach-cond {
+  position: relative;
+  margin-top: 12px;
+  font-size: 0.86em;
+  color: var(--los-muted);
+  line-height: 1.5;
+  animation: lifeos-rise 460ms ease both 380ms;
+}
+
+.lifeos-ach-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 22px 20px;
+  flex-wrap: wrap;
+}
+.lifeos-ach-queue { font-size: 0.76em; color: var(--los-faint); width: 100%; }
+
+@keyframes lifeos-pop {
+  0% { transform: scale(0.3) rotate(-14deg); opacity: 0; }
+  60% { transform: scale(1.08) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes lifeos-rise {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes lifeos-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Respect the system setting — a celebration should not be a vestibular
+ * problem. The modal still appears, it just stops moving. */
+@media (prefers-reduced-motion: reduce) {
+  .lifeos-ach-rays { animation: none; }
+  .lifeos-ach-medal,
+  .lifeos-ach-eyebrow,
+  .lifeos-ach-name,
+  .lifeos-ach-tier,
+  .lifeos-ach-cond { animation: none; }
+  .lifeos-bar-fill { transition: none; }
+}
+
+.lifeos-achlist { display: block; }
+.lifeos-chip-tier { font-variant: small-caps; letter-spacing: 0.04em; }
+.lifeos-achcard-glyph { line-height: 1; }
+.lifeos-diff-level { letter-spacing: 0.02em; }
+
+/* ---- quest log: readiness ---- */
+
+.lifeos-ready { margin-bottom: 12px; }
+.lifeos-ready-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.lifeos-ready-score {
+  font-size: 1.9em;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-ready-band {
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 2px 9px;
+  border: 1px solid currentColor;
+}
+.lifeos-ready-band.is-learning { color: var(--los-faint); }
+.lifeos-ready-band.is-studying { color: #8fb0f0; }
+.lifeos-ready-band.is-testing { color: var(--los-accent-3); }
+.lifeos-ready-band.is-close { color: #e0a53a; }
+.lifeos-ready-band.is-ready { color: #4ade80; }
+.lifeos-ready-meta { margin-left: auto; font-size: 0.76em; color: var(--los-faint); }
+
+.lifeos-comps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.lifeos-comp-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76em;
+  margin-bottom: 4px;
+}
+.lifeos-comp-name { color: var(--los-muted); }
+.lifeos-comp-pct { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.lifeos-blockhead { margin-top: 12px; margin-bottom: 5px; }
+.lifeos-blocker {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 0;
+  font-size: 0.84em;
+  color: var(--los-muted);
+}
+.lifeos-blocker-dot { color: var(--los-faint); font-size: 9px; }
+.lifeos-blocker.is-binding { color: var(--los-text); }
+.lifeos-blocker.is-binding .lifeos-blocker-dot { color: #e0a53a; }
+.lifeos-blocker-text { flex: 1 1 auto; min-width: 0; }
+.lifeos-blocker-cap {
+  font-size: 0.82em;
+  color: #e0a53a;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.lifeos-ready-clear {
+  font-size: 0.88em;
+  color: #4ade80;
+  font-weight: 600;
+  padding: 6px 0;
+}
+
+.lifeos-domrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px 38px;
+  gap: 10px;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 0.8em;
+}
+.lifeos-domrow-name {
+  color: var(--los-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lifeos-domrow-pct {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--los-faint);
+}
+
+/* ---- quest log: bleeding XP ---- */
+
+.lifeos-bleed { display: flex; gap: 9px; align-items: center; padding: 6px 0; }
+.lifeos-bleed + .lifeos-bleed { border-top: 1px solid var(--los-line); }
+.lifeos-bleed .lifeos-diff { margin-left: 0; flex: 0 0 auto; }
+.lifeos-bleed-body { flex: 1 1 auto; min-width: 0; }
+.lifeos-bleed-text {
+  font-size: 0.86em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lifeos-bleed-meta { font-size: 0.74em; color: var(--los-faint); }
+.lifeos-bleed-cost {
+  font-weight: 700;
+  color: var(--text-error, #e05561);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- quest log: bank ---- */
+
+.lifeos-bankhead { text-align: center; padding: 6px 0 10px; }
+.lifeos-bank-amount {
+  font-size: 2em;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--los-accent-2);
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-bank-sub { font-size: 0.76em; color: var(--los-faint); margin-top: 4px; }
+.lifeos-bank-note { font-size: 0.8em; color: var(--los-muted); margin-bottom: 10px; }
+
+/* ---- character: XP sources ---- */
+
+.lifeos-srcrow { padding: 5px 0; }
+.lifeos-srcrow-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.84em;
+  margin-bottom: 4px;
+}
+.lifeos-srcrow-name { color: var(--los-muted); }
+.lifeos-srcrow-xp { font-variant-numeric: tabular-nums; font-weight: 600; }
+.lifeos-srcrow-xp.is-neg { color: var(--text-error, #e05561); }
+.lifeos-bar-fill.is-neg {
+  background: linear-gradient(90deg, var(--text-error, #e05561), #f0a0a8);
+}
+.lifeos-srctotal {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--los-line);
+  margin-top: 8px;
+  padding-top: 8px;
+  font-weight: 700;
+  font-size: 0.88em;
+}
+
+/* ---- character: 30-day sparkline ---- */
+
+.lifeos-spark {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 92px;
+  padding: 6px 0;
+}
+.lifeos-spark-col {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.lifeos-spark-up,
+.lifeos-spark-down { width: 100%; border-radius: 2px; min-height: 0; }
+.lifeos-spark-up {
+  align-self: flex-end;
+  background: linear-gradient(180deg, var(--los-accent-2), var(--los-accent));
+  margin-top: auto;
+}
+.lifeos-spark-down {
+  background: var(--text-error, #e05561);
+  opacity: 0.75;
+  margin-bottom: auto;
+}
+.lifeos-spark-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7em;
+  color: var(--los-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- character: ranks ---- */
+
+.lifeos-rankrow {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 0.86em;
+}
+.lifeos-rankrow-span {
+  color: var(--los-faint);
+  font-variant-numeric: tabular-nums;
+  min-width: 58px;
+}
+.lifeos-rankrow-name { font-weight: 600; }
+.lifeos-rankrow-you {
+  margin-left: auto;
+  font-size: 0.78em;
+  color: var(--los-accent-2);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.lifeos-rankrow.is-here {
+  background: color-mix(in srgb, var(--los-accent) 14%, transparent);
+  border-left: 2px solid var(--los-accent);
+}
+
+/* ---- xp ledger ---- */
+
+.lifeos-ledger { display: block; }
+
+.lifeos-ledgerday { margin-bottom: 16px; }
+.lifeos-ledgerday-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--los-line);
+  margin-bottom: 4px;
+  position: sticky;
+  top: 0;
+  background: var(--los-panel, var(--background-primary));
+  z-index: 1;
+}
+.lifeos-ledgerday-date {
+  font-weight: 700;
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-ledgerday-count { font-size: 0.74em; color: var(--los-faint); }
+.lifeos-ledgerday-net {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--los-accent-2);
+}
+.lifeos-ledgerday-net.is-neg { color: var(--text-error, #e05561); }
+
+.lifeos-ledgerrow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 7px 8px;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+}
+.lifeos-ledgerrow:hover { background: var(--los-panel-2); }
+.lifeos-ledgerrow.is-clickable { cursor: pointer; }
+.lifeos-ledgerrow-glyph {
+  flex: 0 0 auto;
+  width: 16px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--los-muted);
+  padding-top: 2px;
+}
+.lifeos-ledgerrow-body { flex: 1 1 auto; min-width: 0; }
+/* Detail wraps rather than truncating — the Markdown table clipped these into
+ * "Update field permissi…", which is the one thing a ledger must not do. */
+.lifeos-ledgerrow-detail {
+  font-size: 0.86em;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.lifeos-ledgerrow-kind {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+  margin-top: 2px;
+}
+.lifeos-ledgerrow-xp {
+  flex: 0 0 auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--los-accent-2);
+  min-width: 52px;
+  text-align: right;
+}
+.lifeos-ledgerrow-xp.is-neg { color: var(--text-error, #e05561); }
+
+/* A colour per source, on the left edge, so the shape of a day reads at a
+ * glance without turning every row into a badge. */
+.lifeos-kind-task { border-left-color: var(--los-accent); }
+.lifeos-kind-study { border-left-color: var(--los-accent-3); }
+.lifeos-kind-ritual { border-left-color: var(--los-accent-2); }
+.lifeos-kind-milestone { border-left-color: #e0a53a; }
+.lifeos-kind-achievement { border-left-color: #f472b6; }
+.lifeos-kind-decay { border-left-color: var(--text-error, #e05561); }
+
+.lifeos-kind-task .lifeos-ledgerrow-glyph { color: var(--los-accent); }
+.lifeos-kind-study .lifeos-ledgerrow-glyph { color: var(--los-accent-3); }
+.lifeos-kind-ritual .lifeos-ledgerrow-glyph { color: var(--los-accent-2); }
+.lifeos-kind-milestone .lifeos-ledgerrow-glyph { color: #e0a53a; }
+.lifeos-kind-achievement .lifeos-ledgerrow-glyph { color: #f472b6; }
+.lifeos-kind-decay .lifeos-ledgerrow-glyph { color: var(--text-error, #e05561); }
+
+.lifeos-ledgermore { display: flex; justify-content: center; padding: 12px 0 4px; }
+
+/* ---- home study card ---- */
+
+.lifeos-study-head { text-align: center; padding: 2px 0 10px; }
+.lifeos-study-due {
+  font-size: 2.1em;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--los-accent-3);
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-study-duelabel {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+  margin-top: 3px;
+}
+.lifeos-study-sub { font-size: 0.76em; color: var(--los-muted); margin-top: 5px; }
+
+.lifeos-deckrow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.82em;
+  border-top: 1px solid var(--los-line);
+}
+.lifeos-deckrow-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--los-muted);
+}
+.lifeos-deckrow-due {
+  font-size: 0.9em;
+  color: var(--los-accent-3);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.lifeos-deckrow-count {
+  min-width: 30px;
+  text-align: right;
+  color: var(--los-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.lifeos-study-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.lifeos-study-cert {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--los-line);
+  cursor: pointer;
+}
+.lifeos-study-certhead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.78em;
+  margin-bottom: 5px;
+}
+.lifeos-study-certname {
+  color: var(--los-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lifeos-study-certpct { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ---- practice exams ---- */
+
+.lifeos-gate {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-left: 3px solid #e0a53a;
+  border-radius: var(--los-radius);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+.lifeos-gate:hover { border-color: var(--los-accent); border-left-color: #e0a53a; }
+.lifeos-gate-glyph { color: #e0a53a; font-size: 15px; padding-top: 1px; }
+.lifeos-gate-body { flex: 1 1 auto; min-width: 0; }
+.lifeos-gate-title { font-weight: 700; font-size: 0.92em; }
+.lifeos-gate-text {
+  font-size: 0.8em;
+  color: var(--los-muted);
+  margin: 4px 0 8px;
+  line-height: 1.5;
+}
+
+.lifeos-exam-top { text-align: center; padding: 2px 0 8px; }
+.lifeos-exam-score {
+  font-size: 2em;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-exam-score.is-pass { color: #4ade80; }
+.lifeos-exam-score.is-fail { color: #e0a53a; }
+.lifeos-exam-score.is-unsat { color: var(--los-faint); }
+.lifeos-exam-verdict {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+  margin-top: 4px;
+}
+.lifeos-exam-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.76em;
+  color: var(--los-muted);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.lifeos-exam-id { font-size: 0.9em; color: var(--los-faint); }
+
+.lifeos-attempt {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.78em;
+  border-top: 1px solid var(--los-line);
+}
+.lifeos-attempt-date { color: var(--los-muted); font-variant-numeric: tabular-nums; }
+.lifeos-attempt-raw { font-weight: 700; font-variant-numeric: tabular-nums; }
+.lifeos-attempt-adj {
+  color: var(--los-faint);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+.lifeos-attempt-retake {
+  color: #e0a53a;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.lifeos-exam-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+/* ---- reward bank ---- */
+
+.lifeos-bankhero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 12px 22px;
+  align-items: center;
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-top: 2px solid var(--los-accent-2);
+  border-radius: var(--los-radius);
+  padding: 18px 20px;
+  margin-bottom: 18px;
+}
+@media (max-width: 760px) { .lifeos-bankhero { grid-template-columns: 1fr; } }
+.lifeos-bankhero .lifeos-bar { grid-column: 1 / -1; }
+.lifeos-bankhero-amount {
+  font-size: 2.6em;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--los-accent-2);
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-bankhero-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--los-faint);
+  margin-top: 5px;
+}
+.lifeos-bankhero-side { display: flex; gap: 16px; flex-wrap: wrap; }
+.lifeos-bankstat { min-width: 72px; }
+.lifeos-bankstat-value {
+  font-size: 1.05em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-bankstat-sub { font-size: 0.72em; color: var(--los-faint); }
+
+.lifeos-goal { padding: 10px 0; }
+.lifeos-goal + .lifeos-goal { border-top: 1px solid var(--los-line); }
+.lifeos-goal.is-queued { opacity: 0.55; }
+.lifeos-goal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+.lifeos-goal-name { font-weight: 600; }
+.lifeos-goal-price {
+  font-variant-numeric: tabular-nums;
+  color: var(--los-muted);
+  font-size: 0.86em;
+  white-space: nowrap;
+}
+.lifeos-goal-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 0.76em;
+}
+.lifeos-goal-status {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
+.lifeos-goal-status.is-active { color: var(--los-accent-2); }
+.lifeos-goal-status.is-complete { color: #4ade80; }
+.lifeos-goal-status.is-queued { color: var(--los-faint); }
+.lifeos-goal-eta { color: var(--los-faint); text-align: right; }
+.lifeos-goal-note {
+  font-size: 0.76em;
+  color: var(--los-faint);
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--los-line);
+  line-height: 1.5;
+}
+
+.lifeos-spend {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 5px 0;
+  font-size: 0.82em;
+}
+.lifeos-spend + .lifeos-spend { border-top: 1px solid var(--los-line); }
+.lifeos-spend-date { color: var(--los-faint); font-variant-numeric: tabular-nums; }
+.lifeos-spend-reason {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lifeos-spend-amt {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--los-accent-2);
+}
+.lifeos-spend-amt.is-neg { color: var(--text-error, #e05561); }
+.lifeos-bankhero-main { min-width: 0; }
+
+/* ---- card rhythm ----
+ *
+ * Cards sit in independent lanes, so nothing stretches to match a neighbour —
+ * but that also let an empty card collapse to a sliver beside a tall one, and
+ * the page read as ragged rather than as a grid. A floor height plus a centred
+ * empty state gives every card presence whether or not it has content. */
+
+.lifeos-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 124px;
+}
+
+/* The empty state fills whatever room is left instead of hugging the heading,
+ * which is what made "No active projects" look like a rendering fault. */
+.lifeos-card > .lifeos-empty {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 14px 4px;
+  min-height: 56px;
+}
+
+/* Cards paired two-up are half width, so they need a lower floor or the pair
+ * dominates its lane. */
+.lifeos-pair .lifeos-card { min-height: 108px; }
+
+/* An "+ N more" tail is a count, not a row of data — quieter than the rows
+ * above it. */
+.lifeos-deckrow.is-more { color: var(--los-faint); font-style: italic; }
+.lifeos-deckrow.is-more .lifeos-deckrow-name { color: var(--los-faint); }
+
+/* Action rows sit at the foot of a card rather than immediately under the last
+ * row, so cards of different content lengths still line up at the bottom. */
+.lifeos-study-actions,
+.lifeos-exam-actions { margin-top: auto; padding-top: 12px; }
+
+/* ================================================================ settings */
+/* Deliberately the dashboards' visual language rather than Obsidian's own
+ * settings tab: same cards, same chips, same typographic scale. */
+
+.lifeos-settabs { margin-bottom: 16px; }
+.lifeos-setbody { display: block; }
+
+.lifeos-setsection {
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-top: 2px solid var(--los-accent);
+  border-radius: var(--los-radius);
+  padding: 14px 16px 6px;
+  margin-bottom: 14px;
+}
+.lifeos-setsection-head { margin-bottom: 10px; }
+.lifeos-setsection-title {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--los-accent);
+}
+.lifeos-setsection-help {
+  font-size: 0.8em;
+  color: var(--los-muted);
+  margin-top: 5px;
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+.lifeos-setrow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px 0;
+  border-top: 1px solid var(--los-line);
+}
+.lifeos-setsection-body > .lifeos-setrow:first-child { border-top: none; }
+.lifeos-setrow-text { flex: 1 1 auto; min-width: 0; }
+.lifeos-setrow-label { font-size: 0.9em; font-weight: 600; }
+.lifeos-setrow-help {
+  font-size: 0.78em;
+  color: var(--los-faint);
+  margin-top: 3px;
+  line-height: 1.5;
+  max-width: 58ch;
+}
+.lifeos-setrow-ctl { flex: 0 0 auto; display: flex; align-items: center; }
+
+.lifeos-setinput {
+  background: var(--background-primary, #111);
+  border: 1px solid var(--los-line);
+  border-radius: 7px;
+  padding: 5px 9px;
+  color: var(--los-text);
+  font-size: 0.84em;
+  width: 250px;
+  max-width: 42vw;
+}
+.lifeos-setinput.is-num { width: 96px; text-align: right; font-variant-numeric: tabular-nums; }
+.lifeos-setinput:focus { border-color: var(--los-accent); outline: none; }
+
+.lifeos-setselect {
+  background: var(--background-primary, #111);
+  border: 1px solid var(--los-line);
+  border-radius: 7px;
+  padding: 5px 9px;
+  color: var(--los-text);
+  font-size: 0.84em;
+}
+
+.lifeos-setpath { display: flex; align-items: center; gap: 8px; }
+.lifeos-setpath-flag {
+  font-size: 0.72em;
+  min-width: 62px;
+  text-align: right;
+  white-space: nowrap;
+}
+.lifeos-setpath-flag.is-ok { color: #4ade80; }
+.lifeos-setpath-flag.is-bad { color: #e0a53a; }
+
+/* A switch rather than a checkbox: these are read at a glance down a long
+ * column, and a tick box reads as a task. */
+.lifeos-switch {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--los-line);
+  position: relative;
+  cursor: pointer;
+  transition: background 160ms ease;
+  flex: 0 0 auto;
+}
+.lifeos-switch.is-on { background: var(--los-accent); }
+.lifeos-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 160ms cubic-bezier(0.3, 1.4, 0.5, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.lifeos-switch.is-on .lifeos-switch-knob { transform: translateX(18px); }
+
+.lifeos-setnote {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  font-size: 0.84em;
+  color: var(--los-muted);
+}
+
+@media (max-width: 700px) {
+  .lifeos-setrow { flex-direction: column; align-items: stretch; gap: 8px; }
+  .lifeos-setrow-ctl { justify-content: flex-start; }
+  .lifeos-setinput { width: 100%; max-width: none; }
+}
+
+/* ---- settings: setup tab ---- */
+
+.lifeos-setupstate { text-align: center; padding: 6px 0 14px; }
+.lifeos-setupstate-count {
+  font-size: 2.2em;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-setupstate-count.is-ok { color: #4ade80; }
+.lifeos-setupstate-count.is-missing { color: #e0a53a; }
+.lifeos-setupstate-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+  margin-top: 5px;
+}
+
+.lifeos-setuplist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2px 16px;
+  margin-bottom: 12px;
+}
+.lifeos-setuprow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 0.82em;
+}
+.lifeos-setuprow-mark { width: 12px; text-align: center; font-size: 0.9em; }
+.lifeos-setuprow.is-ok .lifeos-setuprow-mark { color: #4ade80; }
+.lifeos-setuprow.is-missing .lifeos-setuprow-mark { color: #e0a53a; }
+.lifeos-setuprow-label { flex: 0 0 auto; }
+.lifeos-setuprow-path {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  color: var(--los-faint);
+  font-size: 0.9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lifeos-setupactions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0 4px;
+  border-top: 1px solid var(--los-line);
+}
+
+.lifeos-setupsteps { padding: 4px 0 8px; }
+.lifeos-setupstep {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 5px 0;
+  font-size: 0.84em;
+  line-height: 1.5;
+}
+.lifeos-setupstep-n {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--los-accent);
+  color: #fff;
+  font-size: 0.78em;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.lifeos-setupstep-text { color: var(--los-muted); }
+
+/* ================================================================= library */
+
+.lifeos-liboff {
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-top: 2px solid var(--los-accent-3);
+  border-radius: var(--los-radius);
+  padding: 18px 20px;
+  text-align: center;
+}
+.lifeos-liboff-title { font-size: 1.05em; font-weight: 700; margin-bottom: 6px; }
+.lifeos-liboff-text {
+  font-size: 0.86em;
+  color: var(--los-muted);
+  line-height: 1.55;
+  max-width: 56ch;
+  margin: 0 auto 14px;
+}
+.lifeos-libnote {
+  font-size: 0.78em;
+  color: var(--los-faint);
+  padding: 8px 0 4px;
+}
+
+.lifeos-libgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+.lifeos-libcard {
+  display: flex;
+  flex-direction: column;
+  background: var(--los-panel-2);
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  padding: 12px 14px;
+  min-width: 0;
+}
+.lifeos-libcard.is-installed { border-left: 3px solid var(--los-accent-2); }
+.lifeos-libcard-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.lifeos-libcard-name { font-weight: 700; font-size: 0.94em; }
+.lifeos-libcard-count {
+  font-size: 0.74em;
+  color: var(--los-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-libcard-desc {
+  font-size: 0.82em;
+  color: var(--los-muted);
+  line-height: 1.5;
+  margin: 6px 0 8px;
+}
+.lifeos-libcard-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.lifeos-libcard-cert,
+.lifeos-libcard-author,
+.lifeos-libcard-licence {
+  font-size: 0.7em;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--los-line);
+  color: var(--los-faint);
+  white-space: nowrap;
+}
+.lifeos-libcard-cert { color: var(--los-accent-3); border-color: currentColor; }
+.lifeos-libcard-licence { color: var(--los-accent-2); border-color: currentColor; }
+.lifeos-libcard-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.lifeos-libcard-done {
+  font-size: 0.76em;
+  color: var(--los-accent-2);
+  font-weight: 600;
+  align-self: center;
+  margin-right: 4px;
+}
+
+/* ---- share walkthrough ---- */
+
+.lifeos-sharemodal { max-width: 640px; }
+.lifeos-sharesteps { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.lifeos-sharestep {
+  font-size: 0.74em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--los-line);
+  color: var(--los-faint);
+}
+.lifeos-sharestep.is-on {
+  background: var(--los-accent);
+  border-color: var(--los-accent);
+  color: #fff;
+}
+.lifeos-sharestep.is-done { color: var(--los-accent-2); border-color: currentColor; cursor: pointer; }
+
+.lifeos-sharelist { max-height: 260px; overflow-y: auto; margin-bottom: 12px; }
+.lifeos-sharerow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.86em;
+}
+.lifeos-sharerow:hover { background: var(--los-panel-2); }
+.lifeos-sharerow.is-on { background: var(--los-accent); color: #fff; }
+.lifeos-sharerow-path { color: var(--los-faint); font-size: 0.86em; }
+.lifeos-sharerow.is-on .lifeos-sharerow-path { color: rgba(255, 255, 255, 0.75); }
+
+.lifeos-licences { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.lifeos-licence {
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  padding: 9px 12px;
+  cursor: pointer;
+}
+.lifeos-licence.is-on { border-color: var(--los-accent); background: color-mix(in srgb, var(--los-accent) 10%, transparent); }
+.lifeos-licence-name { font-weight: 600; font-size: 0.88em; }
+.lifeos-licence-why { font-size: 0.78em; color: var(--los-faint); margin-top: 3px; line-height: 1.45; }
+
+.lifeos-sharewarn {
+  font-size: 0.8em;
+  color: var(--los-muted);
+  line-height: 1.5;
+  border-left: 3px solid #e0a53a;
+  padding: 8px 12px;
+  background: var(--los-panel-2);
+  border-radius: 0 6px 6px 0;
+}
+
+.lifeos-publish { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+.lifeos-publishstep { display: flex; gap: 12px; align-items: flex-start; }
+.lifeos-publishstep-n {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--los-accent);
+  color: #fff;
+  font-size: 0.78em;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.lifeos-publishstep-body { flex: 1 1 auto; min-width: 0; }
+.lifeos-publishstep-title { font-weight: 600; font-size: 0.9em; margin-bottom: 3px; }
+.lifeos-publishstep-text {
+  font-size: 0.8em;
+  color: var(--los-faint);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.lifeos-publishjson {
+  background: var(--background-primary, #111);
+  border: 1px solid var(--los-line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.74em;
+  max-height: 200px;
+  overflow: auto;
+  margin: 0 0 8px;
+  white-space: pre;
+}
+.lifeos-sharerow-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ==================================================================== tour */
+/* Hosted in the right sidebar so it survives navigating the main pane. */
+
+.lifeos-tour {
+  padding: 14px 16px 18px;
+  font-size: 14px;
+  color: var(--los-text);
+}
+.lifeos-tour-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.lifeos-tour-chapter {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--los-accent);
+  font-weight: 700;
+}
+.lifeos-tour-count {
+  font-size: 0.72em;
+  color: var(--los-faint);
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-tour-title {
+  font-size: 1.2em;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 12px 0 4px;
+  border: none;
+  padding: 0;
+}
+.lifeos-tour-mac {
+  display: inline-block;
+  font-size: 0.7em;
+  color: #e0a53a;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 1px 8px;
+  margin-bottom: 8px;
+}
+.lifeos-tour-para {
+  font-size: 0.88em;
+  line-height: 1.6;
+  color: var(--los-muted);
+  margin: 8px 0;
+}
+.lifeos-tour-para strong { color: var(--los-text); }
+.lifeos-tour-para code {
+  font-size: 0.9em;
+  background: var(--los-panel-2);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.lifeos-tour-action { margin: 14px 0 4px; }
+.lifeos-tour-nav {
+  display: flex;
+  gap: 6px;
+  margin: 16px 0 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--los-line);
+}
+.lifeos-tour-foot { display: flex; gap: 4px; flex-wrap: wrap; }
+.lifeos-tour-jump {
+  font-size: 0.68em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--los-line);
+  color: var(--los-faint);
+  cursor: pointer;
+}
+.lifeos-tour-jump.is-on {
+  border-color: var(--los-accent);
+  color: var(--los-accent);
+}
+.lifeos-tour-skip {
+  margin-top: 14px;
+  font-size: 0.74em;
+  color: var(--los-faint);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ---- Settings > Mail ------------------------------------------------- */
+
+.lifeos-mailnote {
+  margin: 12px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--los-line);
+  border-left: 3px solid var(--los-warn);
+  border-radius: var(--los-radius);
+  background: var(--los-panel-2);
+}
+.lifeos-mailnote-title {
+  font-size: 0.82em;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--los-warn);
+  margin-bottom: 4px;
+}
+.lifeos-mailnote-body {
+  font-size: 0.84em;
+  line-height: 1.5;
+  color: var(--los-muted);
+}
+
+.lifeos-setempty {
+  padding: 18px 0;
+  font-size: 0.86em;
+  color: var(--los-faint);
+  text-align: center;
+}
+
+.lifeos-statgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 10px;
+  padding: 6px 0 2px;
+}
+.lifeos-statcell {
+  padding: 12px 10px;
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  background: var(--los-panel);
+  text-align: center;
+}
+.lifeos-statcell-value {
+  font-size: 1.5em;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--los-text);
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-statcell-value.is-good { color: var(--los-accent); }
+.lifeos-statcell-value.is-dim { color: var(--los-faint); }
+.lifeos-statcell-label {
+  margin-top: 4px;
+  font-size: 0.72em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+}
+
+.lifeos-mutelist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+.lifeos-muterow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  background: var(--los-panel);
+}
+.lifeos-muterow-text { min-width: 0; }
+.lifeos-muterow-addr {
+  font-size: 0.88em;
+  color: var(--los-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lifeos-muterow-why {
+  margin-top: 2px;
+  font-size: 0.76em;
+  color: var(--los-faint);
+}
+
+/* ---- Achievement detail ---------------------------------------------- */
+
+.lifeos-achcard { cursor: pointer; }
+.lifeos-achcard:hover {
+  border-color: var(--los-accent);
+  transform: translateY(-1px);
+}
+
+.lifeos-achdetail .lifeos-achdet-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0 16px;
+  border-bottom: 1px solid var(--los-line);
+  margin-bottom: 16px;
+}
+.lifeos-achdet-medal {
+  flex: 0 0 auto;
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--los-line);
+  background: var(--los-panel-2);
+  /* Locked art is dimmed rather than hidden: seeing what you have not earned
+   * is the point of a catalog. */
+  opacity: 0.45;
+  filter: grayscale(0.8);
+}
+.lifeos-achdet-medal.is-unlocked { opacity: 1; filter: none; }
+.lifeos-achdet-art { width: 76px; height: 76px; object-fit: contain; }
+.lifeos-achdet-glyph { font-size: 2em; color: var(--los-faint); }
+
+.lifeos-achdet-headtext { min-width: 0; }
+.lifeos-achdet-name {
+  margin: 0 0 6px;
+  font-size: 1.35em;
+  line-height: 1.2;
+  color: var(--los-text);
+}
+.lifeos-achdet-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.lifeos-achdet-meta > span {
+  font-size: 0.74em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--los-line);
+  color: var(--los-muted);
+}
+.lifeos-achdet-tier.is-bronze { color: #c08457; border-color: #c0845733; }
+.lifeos-achdet-tier.is-silver { color: #9aa7b4; border-color: #9aa7b433; }
+.lifeos-achdet-tier.is-gold { color: #d4a534; border-color: #d4a53433; }
+.lifeos-achdet-tier.is-platinum { color: #7fd0d6; border-color: #7fd0d633; }
+.lifeos-achdet-tier.is-mythic { color: #b98cff; border-color: #b98cff33; }
+.lifeos-achdet-tier.is-hidden { color: var(--los-faint); }
+.lifeos-achdet-xp { color: var(--los-accent); border-color: transparent; }
+
+.lifeos-achdet-label {
+  font-size: 0.72em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+  margin: 14px 0 6px;
+}
+.lifeos-achdet-cond {
+  font-size: 1.02em;
+  line-height: 1.5;
+  color: var(--los-text);
+}
+
+.lifeos-achdet-won {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: var(--los-radius);
+  border: 1px solid var(--los-accent);
+  background: var(--los-panel-2);
+  color: var(--los-accent);
+  font-size: 0.9em;
+}
+.lifeos-achdet-tick { font-size: 1.1em; }
+
+.lifeos-achdet-manual {
+  margin-top: 8px;
+  font-size: 0.88em;
+  line-height: 1.5;
+  color: var(--los-muted);
+}
+
+.lifeos-achdet-progrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 0.84em;
+}
+.lifeos-achdet-count { color: var(--los-text); font-variant-numeric: tabular-nums; }
+.lifeos-achdet-left { color: var(--los-faint); }
+
+/* ---- Settings > AI, and mail run quality ------------------------------ */
+
+.lifeos-aisteps { display: flex; flex-direction: column; gap: 8px; }
+.lifeos-aistep {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  background: var(--los-panel);
+}
+.lifeos-aistep-what { font-size: 0.82em; color: var(--los-text); }
+.lifeos-aistep-how {
+  font-size: 0.78em;
+  color: var(--los-muted);
+  font-family: var(--font-monospace, monospace);
+  word-break: break-word;
+}
+.lifeos-aihelp { margin-top: 10px; }
+
+.lifeos-mailprov {
+  font-size: 0.82em;
+  color: var(--los-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lifeos-mailquality {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+.lifeos-mailquality-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--los-line);
+}
+.lifeos-mailquality-n {
+  min-width: 2.2em;
+  text-align: right;
+  font-size: 1.05em;
+  color: var(--los-text);
+  font-variant-numeric: tabular-nums;
+}
+.lifeos-mailquality-label { font-size: 0.86em; color: var(--los-text); }
+.lifeos-mailquality-why {
+  font-size: 0.78em;
+  line-height: 1.45;
+  color: var(--los-faint);
+}
+
+/* ---- Achievements: no artwork installed ------------------------------- */
+
+.lifeos-artnote {
+  margin: 4px 0 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--los-line);
+  border-left: 3px solid var(--los-accent-2);
+  border-radius: var(--los-radius);
+  background: var(--los-panel-2);
+}
+.lifeos-artnote-title {
+  font-size: 0.82em;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--los-accent-2);
+  margin-bottom: 4px;
+}
+.lifeos-artnote-body {
+  font-size: 0.84em;
+  line-height: 1.5;
+  color: var(--los-muted);
+}
+.lifeos-artnote-cmd {
+  display: block;
+  margin-top: 8px;
+  padding: 7px 9px;
+  border-radius: var(--los-radius);
+  background: var(--los-panel);
+  border: 1px solid var(--los-line);
+  font-family: var(--font-monospace, monospace);
+  font-size: 0.76em;
+  color: var(--los-faint);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ============================ reading width ============================
+ *
+ * Uptick's pages are dashboards: grids of cards, wide tables, a 30-day
+ * sparkline. Obsidian's readable-line-length caps a note at roughly 700px,
+ * which is right for prose and wrong for these -- the cards squeeze into a
+ * column down the middle of the window with empty space either side.
+ *
+ * This was previously handled by a theme (Minimal styles `cssclasses: max`)
+ * and by a CSS snippet that only existed in the author's own vault, so a
+ * fresh install rendered every dashboard narrow and there was nothing in the
+ * plugin to explain why. The plugin now owns its own width.
+ *
+ * Scoped to notes carrying the life-os class, so ordinary Markdown keeps
+ * whatever width you set for it.
+ */
+
+.life-os.markdown-preview-view,
+.life-os .markdown-preview-sizer,
+.life-os .markdown-preview-sizer > div,
+.markdown-source-view.mod-cssclass-life-os .cm-sizer,
+.markdown-source-view.mod-cssclass-life-os .cm-contentContainer {
+  max-width: none !important;
+  width: 100%;
+}
+
+/* The reading-width container Obsidian centres; let it fill instead. */
+.life-os .markdown-preview-sizer,
+.markdown-source-view.mod-cssclass-life-os .cm-sizer {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: var(--file-margins, 24px);
+  padding-right: var(--file-margins, 24px);
+}
+
+/* An embedded Uptick view inside another note should not add its own margins
+ * on top of the host note's. */
+.life-os .markdown-embed .markdown-preview-view {
+  padding: 0;
+}
+
+/* ---- "this needs setting up" cards ------------------------------------ */
+
+.lifeos-setuphint {
+  padding: 14px 16px;
+  border: 1px dashed var(--los-line);
+  border-radius: var(--los-radius);
+  background: var(--los-panel-2);
+}
+.lifeos-setuphint-title {
+  font-size: 0.86em;
+  font-weight: 600;
+  color: var(--los-text);
+  margin-bottom: 5px;
+}
+.lifeos-setuphint-body {
+  font-size: 0.82em;
+  line-height: 1.55;
+  color: var(--los-muted);
+}
+.lifeos-setuphint-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ---- Settings > Setup: companion plugins ------------------------------ */
+
+.lifeos-companions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0 10px;
+}
+.lifeos-companion {
+  padding: 10px 12px;
+  border: 1px solid var(--los-line);
+  border-left: 2px solid var(--los-line);
+  border-radius: var(--los-radius);
+  background: var(--los-panel);
+}
+.lifeos-companion.is-on { border-left-color: var(--los-accent); }
+.lifeos-companion-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.lifeos-companion-mark { color: var(--los-faint); }
+.lifeos-companion.is-on .lifeos-companion-mark { color: var(--los-accent); }
+.lifeos-companion-name { font-size: 0.9em; color: var(--los-text); }
+.lifeos-companion-state {
+  margin-left: auto;
+  font-size: 0.72em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--los-faint);
+}
+.lifeos-companion-why {
+  margin-top: 4px;
+  font-size: 0.8em;
+  line-height: 1.5;
+  color: var(--los-muted);
+}
+
+/* ---- Today Plan / Now -------------------------------------------------- */
+
+.lifeos-now-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
+  gap: 14px;
+  margin: 0 0 14px;
+}
+.lifeos-now { min-width: 0; }
+.lifeos-plan-top,
+.lifeos-plan-row,
+.lifeos-plan-suggestion,
+.lifeos-trust-signal {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.lifeos-plan-top { justify-content: space-between; margin-bottom: 10px; }
+.lifeos-plan-count { font-size: 0.84em; color: var(--los-text); font-weight: 650; }
+.lifeos-plan-next,
+.lifeos-plan-detail,
+.lifeos-plan-reason,
+.lifeos-trust-detail {
+  font-size: 0.78em;
+  color: var(--los-muted);
+}
+.lifeos-plan-warning {
+  margin: 8px 0;
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--los-warn) 14%, transparent);
+  color: var(--los-warn);
+  font-size: 0.8em;
+}
+.lifeos-plan-row,
+.lifeos-plan-suggestion {
+  padding: 9px 0;
+  border-top: 1px solid var(--los-line);
+}
+.lifeos-plan-body { min-width: 0; flex: 1; }
+.lifeos-plan-label { color: var(--los-text); line-height: 1.35; }
+.lifeos-plan-detail { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 2px; }
+.lifeos-plan-status {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72em;
+  color: var(--los-accent-2);
+}
+.lifeos-plan-status.is-done { color: var(--los-accent); }
+.lifeos-plan-status.is-deferred,
+.lifeos-plan-status.is-dropped { color: var(--los-faint); }
+.lifeos-plan-source { color: var(--los-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lifeos-plan-actions,
+.lifeos-plan-manual { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lifeos-plan-suggestions { margin-top: 12px; }
+.lifeos-plan-recommended { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--los-line); }
+.lifeos-plan-recommended-label { margin-top: 2px; color: var(--los-text); font-weight: 600; }
+.lifeos-plan-review { padding: 8px 0 3px; border-bottom: 1px solid var(--los-line); margin-bottom: 8px; }
+.lifeos-plan-review-row { color: var(--los-muted); font-size: 0.8em; margin-top: 2px; }
+
+.lifeos-trust-signals {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 11px 12px;
+  border: 1px solid var(--los-line);
+  border-radius: var(--los-radius);
+  background: var(--los-panel);
+}
+.lifeos-trust-signal { justify-content: space-between; cursor: pointer; padding: 3px 0; }
+.lifeos-trust-name { font-size: 0.78em; color: var(--los-muted); }
+.lifeos-trust-signal.is-fresh .lifeos-trust-detail { color: var(--los-accent-2); }
+.lifeos-trust-signal.is-stale .lifeos-trust-detail { color: var(--los-warn); }
+.lifeos-trust-signal.is-missing .lifeos-trust-detail { color: var(--los-faint); }
+
+@media (max-width: 900px) {
+  .lifeos-now-band { grid-template-columns: minmax(0, 1fr); }
+}

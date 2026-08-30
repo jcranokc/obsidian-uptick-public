@@ -1,0 +1,10 @@
+{
+  "id": "life-os",
+  "name": "Uptick",
+  "version": "0.7.0",
+  "minAppVersion": "1.4.0",
+  "description": "Dashboard workspace for Obsidian: daily, weekly and monthly dashboards, meeting records, tasks, and an optional experience layer with levels, achievements, a reward bank and exam readiness. Local Markdown only.",
+  "author": "Jacob Crandall",
+  "isDesktopOnly": false,
+  "fundingUrl": ""
+}

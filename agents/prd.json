@@ -1,0 +1,363 @@
+{
+  "project": "Uptick",
+  "branchName": "ralph/imessage-task-capture",
+  "description": "A local-first workflow assistant for triage learning, Waiting follow-ups, reschedule history, Reminders activity, email task capture, Waiting dashboards, and guided weekly reviews.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Add workflow assistant state and settings",
+      "description": "As an Uptick user, I want the workflow assistant configured and stored safely so that new features do not expose my private task data.",
+      "acceptanceCriteria": [
+        "Add versioned settings for triage, Waiting follow-ups, activity history, email capture, and weekly review behavior.",
+        "Migrate existing Reminders settings without overwriting unrelated configuration.",
+        "Store Reminder IDs, Mail locators, learning signals, and activity events only in private local state.",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "fixtureCoverage": ["settings migration preserves unrelated keys", "workflow defaults and state initialization"],
+      "notes": "Implemented versioned workflow defaults, non-destructive config merge, and private state; verified with plugin render and workflow fixtures."
+    },
+    {
+      "id": "US-002",
+      "title": "Build the triage learning queue",
+      "description": "As an Uptick user, I want explainable AI suggestions for uncategorized tasks so that I can approve accurate routing and teach the system my preferences.",
+      "acceptanceCriteria": [
+        "Use the existing Uptick AI provider configuration, including Codex CLI, with explicit preflight and disclosure.",
+        "Suggest category, status, duration, phone capability, and priority with confidence and reasons.",
+        "Require approval before changing a task; explicit tags remain authoritative.",
+        "Persist corrections privately and use them in later recommendations; fall back to local cue inference when unavailable.",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "fixtureCoverage": ["local cue confidence and tie handling", "cloud preflight fallback", "approval and private learning correction"],
+      "notes": "Implemented local explainable inference, optional provider preflight, approval, learning, and fallback; verified by workflow fixtures."
+    },
+    {
+      "id": "US-003",
+      "title": "Add Waiting follow-up dates",
+      "description": "As an Uptick user, I want blocked and dependency tasks to have follow-up dates so that nothing waiting on someone else disappears.",
+      "acceptanceCriteria": [
+        "Represent follow-up date and waiting reason independently from the original due date.",
+        "Mirror the follow-up date on the existing Waiting reminder with a configurable follow-up tag.",
+        "Treat every Waiting reminder as blocked and pause XP decay.",
+        "Restore the task due date when the task leaves Waiting without creating duplicates.",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "fixtureCoverage": ["blocked and dependency routes", "follow-up tag/date projection", "Waiting exit restores original due date"],
+      "notes": "Implemented independent Waiting metadata, follow-up projection, blocked/dependency handling, and due restoration; verified by sync fixtures and live dry-run."
+    },
+    {
+      "id": "US-004",
+      "title": "Record reschedule history",
+      "description": "As an Uptick user, I want a history of due-date changes so that I can see patterns without losing the task's accountability.",
+      "acceptanceCriteria": [
+        "Record old date, new date, timestamp, source, and optional reason for changes from either system.",
+        "Keep history private and out of Reminder Notes and task titles.",
+        "Preserve accrued delay and XP decay when rescheduling.",
+        "Show reschedule history in task detail and weekly review context.",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "fixtureCoverage": ["Obsidian-originated reschedule", "Reminders-originated reschedule", "private history and decay preservation"],
+      "notes": "Implemented private two-source reschedule history, task detail report, and weekly context; verified by workflow fixtures and static checks."
+    },
+    {
+      "id": "US-005",
+      "title": "Add the sync activity panel",
+      "description": "As an Uptick user, I want an audit view of synchronization so that I can understand what changed and repair failures.",
+      "acceptanceCriteria": [
+        "Record runs, creates, updates, moves, completions, conflicts, skips, and errors in permanent private history.",
+        "Provide filters, item links, export, and an explicit clear-history action.",
+        "Avoid displaying private IDs and Mail locators by default.",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "fixtureCoverage": ["activity event categories", "filter/export/clear controls", "redacted display"],
+      "notes": "Implemented private activity summaries, filters, redacted export, item detail links, and confirmed clear action; verified by render and workflow checks."
+    },
+    {
+      "id": "US-006",
+      "title": "Capture email tasks with subtasks",
+      "description": "As an Uptick user, I want selected Mail messages turned into linked parent tasks with approved subtasks so that email commitments become actionable.",
+      "acceptanceCriteria": [
+        "Support imported email-reference notes and selected Apple Mail messages.",
+        "Preview extracted actions and let the user approve or edit them before creation.",
+        "Create one parent and native Reminders subtasks, mirrored as an Obsidian task hierarchy.",
+        "Completing a parent completes all children in both systems; deduplicate by message and action identity.",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "fixtureCoverage": ["imported email preview", "selected Mail preview", "parent/child deduplication and completion propagation"],
+      "notes": "Implemented imported/selected Mail preview with edit-or-capture approval, Obsidian hierarchy, native child helper, private links, and message/action deduplication."
+    },
+    {
+      "id": "US-007",
+      "title": "Build the Waiting dashboard",
+      "description": "As an Uptick user, I want a Waiting dashboard so that I can see overdue follow-ups, aging blockers, and next actions in one place.",
+      "acceptanceCriteria": [
+        "Group Waiting tasks by overdue, upcoming, missing date, age, and reason.",
+        "Provide confirmed actions for follow up, reschedule, unblock, and archive.",
+        "Reflect changes made in Apple Reminders after the next sync.",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": true,
+      "fixtureCoverage": ["overdue/upcoming/undated/aging groups", "confirmed Waiting actions", "post-sync reflection"],
+      "notes": "Implemented Waiting grouping and confirmed follow-up, reschedule, unblock, and archive actions; verified by fixtures and dashboard rendering."
+    },
+    {
+      "id": "US-008",
+      "title": "Add the guided weekly review assistant",
+      "description": "As an Uptick user, I want a guided weekly review so that I can process triage, overdue work, Waiting follow-ups, and reschedules deliberately.",
+      "acceptanceCriteria": [
+        "Present recommendations for triage, overdue tasks, stale Waiting items, and reschedule patterns.",
+        "Require approval for every task change.",
+        "Write a concise dated review section without overwriting existing weekly-note content.",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": true,
+      "fixtureCoverage": ["weekly recommendation categories", "approval-only task changes", "review-note append preservation"],
+      "notes": "Implemented recommendation categories, approval-only controls, and append-only weekly note recording; verified by workflow fixtures and render tests."
+    },
+    {
+      "id": "US-009",
+      "title": "Extend the companion and documentation",
+      "description": "As an Uptick user, I want the macOS companion and documentation to explain permissions, privacy, and recovery for the full workflow.",
+      "acceptanceCriteria": [
+        "Support native Reminders hierarchy, Mail links, and safe structured activity events on macOS.",
+        "Keep settings functional on unsupported platforms with an explicit unavailable state.",
+        "Document cloud AI data boundaries, Codex/provider configuration, local state, and recovery.",
+        "Run existing tests, new fixtures, Python compilation, JavaScript checks, and manual macOS smoke verification.",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": true,
+      "fixtureCoverage": ["macOS permission and list smoke", "native hierarchy and Mail link helpers", "public privacy audit and recovery documentation"],
+      "notes": "Implemented macOS Reminders/Mail helpers, privacy documentation, and live-safe permission/list smoke; all static, Python, JavaScript, and sync checks pass."
+    },
+    {
+      "id": "US-010",
+      "title": "Add sent-email completion settings and private state",
+      "description": "As an Uptick user, I want sent-email completion to be configurable and private so that automation is safe and recoverable.",
+      "acceptanceCriteria": [
+        "Add default-off emailCompletion settings for Sent scanning, unique-match auto-completion, lookback, limits, and phrase lists.",
+        "Migrate existing workflow settings without changing unrelated configuration.",
+        "Store cursors, processed message IDs, completion events, and review candidates only in the private state file.",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": true,
+      "fixtureCoverage": ["default-off migration", "private cursor and state initialization"],
+      "notes": "Implemented default-off emailCompletion settings and private cursor/review state; migration uses the existing config merge."
+    },
+    {
+      "id": "US-011",
+      "title": "Scan new sent Apple Mail messages",
+      "description": "As an Uptick user, I want new outgoing Mail messages checked during the existing sync so that completed work can be recognized without another scheduler.",
+      "acceptanceCriteria": [
+        "Read only new Sent messages after the private cursor and respect the per-run limit.",
+        "Identify messages authored by the configured user account and ignore unavailable Mail permissions safely.",
+        "Strip quoted replies and signatures where detectable and never send or modify email.",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": true,
+      "fixtureCoverage": ["cursor and offline catch-up", "Mail permission failure", "quoted-body extraction"],
+      "notes": "Implemented Sent-mail AppleScript scanner, cursor/limit handling, quoted-content filtering, and safe permission failure behavior."
+    },
+    {
+      "id": "US-012",
+      "title": "Detect explicit completion and match tasks conservatively",
+      "description": "As an Uptick user, I want only clear completion statements tied to one task to trigger automation so that replies do not close unrelated work.",
+      "acceptanceCriteria": [
+        "Recognize configurable explicit completion phrases and reject configured negated or future-tense phrases.",
+        "Prefer private originating-message/thread associations before normalized-subject fallback.",
+        "Allow subject fallback only for one unique open candidate; multiple candidates remain unresolved.",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": true,
+      "fixtureCoverage": ["positive and negative phrases", "linked-task precedence", "unique and ambiguous subject matches"],
+      "notes": "Implemented explicit positive/negative phrase rules, linked association precedence, and unique normalized-subject fallback."
+    },
+    {
+      "id": "US-013",
+      "title": "Auto-complete clear matches through two-way sync",
+      "description": "As an Uptick user, I want a clear sent completion to close the linked Obsidian task and Reminder in one sync cycle.",
+      "acceptanceCriteria": [
+        "Auto-complete one uniquely linked open task when the explicit completion rule passes.",
+        "Propagate the completion to the linked Apple Reminder through the existing sync projection.",
+        "Preserve task metadata, due dates, categories, XP history, and reschedule history.",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": true,
+      "fixtureCoverage": ["Obsidian completion propagation", "Reminder completion propagation", "idempotent already-complete handling"],
+      "notes": "Implemented one-match Obsidian completion before Reminders reconciliation with existing metadata and idempotency preserved."
+    },
+    {
+      "id": "US-014",
+      "title": "Add ambiguous email completion review",
+      "description": "As an Uptick user, I want uncertain sent-email completion matches reviewed before changing tasks so that automation remains trustworthy.",
+      "acceptanceCriteria": [
+        "Place ambiguous, multi-match, and missing-association signals in a private review queue.",
+        "Show safe message summaries, candidate task titles, and match reasons without private Mail IDs.",
+        "Require approval to complete a selected candidate and support rejection without changing the task.",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": true,
+      "fixtureCoverage": ["review approval and rejection", "alternate candidate selection", "redacted review display"],
+      "notes": "Implemented private review queue, candidate selection, approval/rejection controls, and redacted display."
+    },
+    {
+      "id": "US-015",
+      "title": "Document and verify sent-email completion",
+      "description": "As an Uptick user, I want the sent-email completion behavior documented and testable so that I can understand and recover it.",
+      "acceptanceCriteria": [
+        "Add settings controls for enablement, phrases, lookback, limits, scan status, and review queue access.",
+        "Record sent-email scan, detection, approval, rejection, skip, and error activity events.",
+        "Document privacy, matching precedence, offline catch-up, cursor recovery, and the lack of Shortcut dependency.",
+        "Run Python compilation, JavaScript checks, AppleScript compilation, fixtures, and a live-safe macOS smoke check.",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": true,
+      "fixtureCoverage": ["settings rendering", "activity event filtering", "public privacy audit and macOS helper smoke"],
+      "notes": "Implemented settings, activity events, documentation, fixtures, AppleScript compilation, and live-safe macOS smoke verification."
+    },
+    {
+      "id": "US-016",
+      "title": "Read new incoming iMessages incrementally",
+      "description": "As an Uptick user, I want new incoming iMessages read locally so actionable requests can become tasks without rescanning message history.",
+      "acceptanceCriteria": [
+        "Read Messages through a read-only immutable SQLite connection and persist a private cursor.",
+        "Scan incoming direct and group messages while excluding messages sent by the user.",
+        "Keep message GUIDs, chat identifiers, sender values, and source associations out of command output and public files.",
+        "Handle missing database or Full Disk Access without modifying Messages data.",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": true,
+      "fixtureCoverage": ["incremental cursor", "incoming versus outgoing", "missing database"],
+      "notes": "Implemented immutable incremental reader, private cursor, filtering boundary, fixture support, and safe missing-database handling."
+    },
+    {
+      "id": "US-017",
+      "title": "Detect actionable iMessages",
+      "description": "As an Uptick user, I want actionable requests detected while ordinary conversation and system messages are ignored.",
+      "acceptanceCriteria": [
+        "Detect request language such as please, can you, need you to, remember to, send, call, schedule, and follow up.",
+        "Filter verification codes, reactions, advertisements, URL-only messages, and ordinary acknowledgements.",
+        "Run local rules first and optionally use the configured Uptick model only when explicitly enabled.",
+        "Create detected actionable tasks automatically without an approval step.",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": true,
+      "fixtureCoverage": ["action language", "system-message filtering", "optional model unavailable"],
+      "notes": "Implemented local action-language and system-message filters with optional configured-provider classification."
+    },
+    {
+      "id": "US-018",
+      "title": "Create normalized parent and child tasks",
+      "description": "As an Uptick user, I want one iMessage request represented as a clean parent task with child actions in the Task Inbox.",
+      "acceptanceCriteria": [
+        "Write only to the configured canonical Task Inbox.",
+        "Create a stable source-derived ID for the parent and each action child.",
+        "Extract multiple distinct actions into child tasks and deduplicate repeated actions.",
+        "Preserve an explicit YYYY-MM-DD due date and do not invent a date when none exists.",
+        "Typecheck passes"
+      ],
+      "priority": 18,
+      "passes": true,
+      "fixtureCoverage": ["one action", "multiple actions", "explicit and missing due date", "repeat scan"],
+      "notes": "Implemented stable source/action IDs, parent-child Task Inbox output, explicit-date preservation, and idempotency."
+    },
+    {
+      "id": "US-019",
+      "title": "Classify iMessage task metadata",
+      "description": "As an Uptick user, I want iMessage-created tasks to receive the same category and execution metadata as other Obsidian tasks.",
+      "acceptanceCriteria": [
+        "Use explicit category tags first, then configured local cues, then optional model classification.",
+        "Route unresolved or tied categories with #needs-triage.",
+        "Assign exactly one duration tag, phone capability, not-started status, and low/medium/high priority.",
+        "Treat waiting and dependency language as blocked and map highest urgency to high priority plus the Reminder flag.",
+        "Typecheck passes"
+      ],
+      "priority": 19,
+      "passes": true,
+      "fixtureCoverage": ["Work/Personal/House", "ambiguous category", "Waiting", "duration and phone", "priority"],
+      "notes": "Implemented category cue precedence, triage fallback, duration/phone/status tags, and priority/flag projection."
+    },
+    {
+      "id": "US-020",
+      "title": "Run capture before Reminders reconciliation",
+      "description": "As an Uptick user, I want iMessage-created tasks picked up by the existing Reminders automation in the same sync cycle.",
+      "acceptanceCriteria": [
+        "Invoke iMessage task capture before the Reminders bridge reads the Task Inbox.",
+        "Reuse the existing 10-minute lock-protected sync path and remain idempotent.",
+        "Expose capture counts in the private sync result and activity record.",
+        "Continue safely when iMessage access is unavailable and never invoke Shortcuts.",
+        "Typecheck passes"
+      ],
+      "priority": 20,
+      "passes": true,
+      "fixtureCoverage": ["end-to-end capture and projection", "disabled capture", "permission failure"],
+      "notes": "Integrated capture before Reminders reconciliation and removed the obsolete Shortcut hook from the sync wrapper."
+    },
+    {
+      "id": "US-021",
+      "title": "Add iMessage capture settings",
+      "description": "As an Uptick user, I want to configure iMessage capture without editing files by hand.",
+      "acceptanceCriteria": [
+        "Add enablement, auto-create, model-use, excluded chats, excluded senders, and status controls under Reminders settings.",
+        "Show dry-run and status actions with clear unavailable states.",
+        "Keep the feature desktop-only and default-off for fresh installations.",
+        "Typecheck passes"
+      ],
+      "priority": 21,
+      "passes": true,
+      "fixtureCoverage": ["settings defaults", "settings rendering", "disabled state"],
+      "notes": "Added desktop-gated settings controls, status, preview, exclusions, and default-off behavior."
+    },
+    {
+      "id": "US-022",
+      "title": "Document privacy and recovery boundaries",
+      "description": "As an Uptick user, I want the iMessage capture behavior and recovery controls documented.",
+      "acceptanceCriteria": [
+        "Document the Messages permission requirement, local-first behavior, model opt-in, filters, and automatic creation behavior.",
+        "Document that Reminders receives the normal cleaned title, details, tags, dates, priorities, and flags through the existing projection.",
+        "Document private cursor/state recovery and the absence of Shortcut requirements.",
+        "Typecheck passes"
+      ],
+      "priority": 22,
+      "passes": true,
+      "fixtureCoverage": ["README privacy audit", "state recovery documentation"],
+      "notes": "Updated README and workflow documentation with privacy, recovery, routing, and no-Shortcut boundaries."
+    },
+    {
+      "id": "US-023",
+      "title": "Verify iMessage to Reminders flow",
+      "description": "As an Uptick maintainer, I want automated coverage proving that iMessage-created tasks follow the Reminders contract.",
+      "acceptanceCriteria": [
+        "Test task creation, hierarchy, deduplication, category routing, tags, due dates, priority, phone capability, and blocked status.",
+        "Test the existing Reminders projection and completion behavior using iMessage-origin task fixtures.",
+        "Run Python compilation, JavaScript syntax/render tests, shell syntax checks, and a private-vault dry run.",
+        "Typecheck passes"
+      ],
+      "priority": 23,
+      "passes": true,
+      "fixtureCoverage": ["full fixture pipeline", "private dry run"],
+      "notes": "Added fixture coverage and completed Python, JavaScript, shell, JSON, diff, and private-vault dry-run verification."
+    }
+  ]
+}

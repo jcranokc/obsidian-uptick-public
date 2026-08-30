@@ -1,0 +1,426 @@
+{
+ "updated": "2026-08-23",
+ "character": {
+  "level": 4,
+  "total": 1180,
+  "rank": "Operator",
+  "streak": 6,
+  "longest": 9,
+  "into": 180,
+  "need": 1000,
+  "streak_bonus": 1.12,
+  "freezes_left": 2,
+  "freezes_total": 2,
+  "achievements": 5,
+  "achievements_auto": 157,
+  "today": 84
+ },
+ "bank": {
+  "earned": 1.54,
+  "level_bonus": 2,
+  "total": 42.5,
+  "this_month": 12.0,
+  "goals": [
+   {
+    "n": "1",
+    "name": "A subscription",
+    "price": 100.0,
+    "banked": 32.5,
+    "progress": 0.325,
+    "remaining": 67.5,
+    "eta_days": 45,
+    "status": "Active"
+   }
+  ],
+  "ledger": [
+   {
+    "date": "2026-08-20",
+    "change": -10.0,
+    "reason": "A book"
+   }
+  ],
+  "spent": 10.0,
+  "available": 32.5,
+  "rate": 250,
+  "ceiling": 100,
+  "daily": 1.5,
+  "active_days": 12
+ },
+ "sources": [
+  {
+   "kind": "task",
+   "label": "Tasks",
+   "xp": 0
+  },
+  {
+   "kind": "study",
+   "label": "Study",
+   "xp": 50
+  },
+  {
+   "kind": "ritual",
+   "label": "Rituals",
+   "xp": 0
+  },
+  {
+   "kind": "milestone",
+   "label": "Milestones",
+   "xp": 0
+  },
+  {
+   "kind": "achievement",
+   "label": "Achievements",
+   "xp": 350
+  },
+  {
+   "kind": "decay",
+   "label": "Overdue decay",
+   "xp": -16
+  }
+ ],
+ "totals": {
+  "week": 384,
+  "month": 384,
+  "all": 384
+ },
+ "trail": [
+  {
+   "date": "2026-07-25",
+   "xp": 0
+  },
+  {
+   "date": "2026-07-26",
+   "xp": 0
+  },
+  {
+   "date": "2026-07-27",
+   "xp": 0
+  },
+  {
+   "date": "2026-07-28",
+   "xp": 0
+  },
+  {
+   "date": "2026-07-29",
+   "xp": 0
+  },
+  {
+   "date": "2026-07-30",
+   "xp": 0
+  },
+  {
+   "date": "2026-07-31",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-01",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-02",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-03",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-04",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-05",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-06",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-07",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-08",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-09",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-10",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-11",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-12",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-13",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-14",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-15",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-16",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-17",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-18",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-19",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-20",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-21",
+   "xp": 0
+  },
+  {
+   "date": "2026-08-22",
+   "xp": 100
+  },
+  {
+   "date": "2026-08-23",
+   "xp": 284
+  }
+ ],
+ "ranks": [
+  {
+   "floor": 1,
+   "name": "Operator"
+  },
+  {
+   "floor": 10,
+   "name": "Technician"
+  },
+  {
+   "floor": 20,
+   "name": "Specialist"
+  },
+  {
+   "floor": 30,
+   "name": "Architect"
+  },
+  {
+   "floor": 40,
+   "name": "Principal"
+  },
+  {
+   "floor": 50,
+   "name": "Distinguished"
+  },
+  {
+   "floor": 60,
+   "name": "Luminary"
+  },
+  {
+   "floor": 75,
+   "name": "Legend"
+  },
+  {
+   "floor": 100,
+   "name": "Ascended"
+  }
+ ],
+ "study": {
+  "total": 300,
+  "due": 300,
+  "overdue": 0,
+  "new": 300,
+  "mature": 0,
+  "reviewed": 0,
+  "decks": [
+   {
+    "deck": "Process Automation",
+    "cards": 59,
+    "due": 59,
+    "new": 59
+   },
+   {
+    "deck": "Objects and Applications",
+    "cards": 56,
+    "due": 56,
+    "new": 56
+   },
+   {
+    "deck": "Security and Access",
+    "cards": 55,
+    "due": 55,
+    "new": 55
+   },
+   {
+    "deck": "Cloud Applications",
+    "cards": 43,
+    "due": 43,
+    "new": 43
+   },
+   {
+    "deck": "Data and Analytics Management",
+    "cards": 41,
+    "due": 41,
+    "new": 41
+   },
+   {
+    "deck": "Auditing and Monitoring",
+    "cards": 29,
+    "due": 29,
+    "new": 29
+   },
+   {
+    "deck": "Deployment",
+    "cards": 13,
+    "due": 13,
+    "new": 13
+   },
+   {
+    "deck": "Environment Management",
+    "cards": 4,
+    "due": 4,
+    "new": 4
+   }
+  ]
+ },
+ "certifications": [
+  {
+   "name": "An Example Certification",
+   "score": 0.0,
+   "band": "Learning",
+   "coverage": 0.0,
+   "mastery": 0.0,
+   "performance": 0.0,
+   "consistency": 0.0,
+   "composite": 0.0,
+   "days_left": 98,
+   "exam_date": "2026-11-29",
+   "pass_mark": 65.0,
+   "cards": 300,
+   "attempts": 0,
+   "attempts_log": [],
+   "path": "Game/Certifications/Example.md",
+   "blockers": [
+    {
+     "reason": "blueprint coverage 0% (needs 90%)",
+     "ceiling": 70.0,
+     "binding": false
+    },
+    {
+     "reason": "below 50% mastery: 8 of 8 domains, weakest Auditing and Monitoring",
+     "ceiling": 75.0,
+     "binding": false
+    },
+    {
+     "reason": "0 full practice exams in 30d (needs 2)",
+     "ceiling": 60.0,
+     "binding": false
+    },
+    {
+     "reason": "0 full practice exams ever (needs 3)",
+     "ceiling": 80.0,
+     "binding": false
+    }
+   ],
+   "domains": [
+    {
+     "name": "Process Automation",
+     "mastery": 0.0
+    },
+    {
+     "name": "Security and Access",
+     "mastery": 0.0
+    },
+    {
+     "name": "Objects and Applications",
+     "mastery": 0.0
+    },
+    {
+     "name": "Auditing and Monitoring",
+     "mastery": 0.0
+    },
+    {
+     "name": "Cloud Applications",
+     "mastery": 0.0
+    },
+    {
+     "name": "Data and Analytics Management",
+     "mastery": 0.0
+    },
+    {
+     "name": "Deployment",
+     "mastery": 0.0
+    },
+    {
+     "name": "Environment Management",
+     "mastery": 0.0
+    }
+   ]
+  }
+ ],
+ "tasks": {
+  "open": 17,
+  "blocked": 0,
+  "overdue": 6
+ },
+ "bleeding": [
+  {
+   "text": "An overdue task",
+   "difficulty": 3,
+   "due": "2026-08-18",
+   "days": 5,
+   "cost": 12,
+   "id": "task-example"
+  }
+ ],
+ "recent": [
+  {
+   "date": "2026-08-22",
+   "xp": 50,
+   "detail": "Enrolled (Bronze)",
+   "slug": "enrolled"
+  },
+  {
+   "date": "2026-08-22",
+   "xp": 50,
+   "detail": "First Note (Bronze)",
+   "slug": "first-note"
+  },
+  {
+   "date": "2026-08-23",
+   "xp": 50,
+   "detail": "Day Two (Bronze)",
+   "slug": "day-two"
+  },
+  {
+   "date": "2026-08-23",
+   "xp": 50,
+   "detail": "Card Author (Bronze)",
+   "slug": "card-author"
+  },
+  {
+   "date": "2026-08-23",
+   "xp": 150,
+   "detail": "Deck Builder (Silver)",
+   "slug": "deck-builder"
+  }
+ ]
+}

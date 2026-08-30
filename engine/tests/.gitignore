@@ -1,0 +1,4 @@
+node_modules/
+!node_modules/obsidian/
+_*_under_test.js
+_clean*.js

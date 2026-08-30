@@ -1,0 +1,70 @@
+{
+  "project": "Uptick",
+  "branchName": "ralph/public-release-hardening",
+  "description": "Remove private defaults from Uptick, rotate private integrations, rebuild clean public history, and publish version 0.7.0.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Add private integration configuration",
+      "description": "As an Uptick user, I want account-specific integration settings loaded only from private local configuration so that public source never contains my identifiers.",
+      "acceptanceCriteria": ["Add an ignored private configuration file format with the Uptick Calendar, Reminders, owner, assignee, and series-rule keys.", "Calendar writes fail closed with no configured target.", "Typecheck passes"],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Generalize optional companions",
+      "description": "As a public Uptick installer, I want the calendar, task-audit, series, and priority helpers to work from generic configuration instead of the author's data.",
+      "acceptanceCriteria": ["Remove hardcoded account IDs and personal/work rules.", "Load optional merge and skip rules from a private JSON file.", "Keep unconfigured optional integrations non-mutating.", "Typecheck passes"],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Repair public helper packaging",
+      "description": "As a public Uptick installer, I want shipped wrappers and examples to be generic and executable.",
+      "acceptanceCriteria": ["Make the task-audit wrapper call the shipped Python helper.", "Use Uptick-generic lock and log names.", "Remove private examples from UI text and test fixtures.", "Typecheck passes"],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Add release privacy guardrails",
+      "description": "As a maintainer, I want automated public-boundary and secret checks so private defaults cannot return unnoticed.",
+      "acceptanceCriteria": ["Add a release-boundary regression test.", "Ignore private release-audit term files.", "Add GitHub Actions validation and Gitleaks scanning.", "Typecheck passes"],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Rotate private Calendar and Reminders resources",
+      "description": "As an Uptick owner, I want replacement private integration targets so publicly exposed identifiers are no longer used.",
+      "acceptanceCriteria": ["Create dedicated replacement Calendar and Reminders resources.", "Migrate only automation-owned items and verify dry runs.", "Do not retire old resources without an action-time confirmation.", "Typecheck passes"],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Create clean public history",
+      "description": "As the repository owner, I want a sanitized public root history so old releases no longer expose private source content.",
+      "acceptanceCriteria": ["Create and verify an offline mirror backup before ref replacement.", "Publish a clean root with no legacy public branches or tags.", "Request GitHub removal of unreachable cached objects.", "Typecheck passes"],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Publish and verify Uptick 0.7.0",
+      "description": "As a public Uptick user, I want a verified 0.7.0 release that installs cleanly without private configuration.",
+      "acceptanceCriteria": ["Bump manifest and versions metadata to 0.7.0.", "Pass clean-install, renderer, structure, Python, and release-boundary tests.", "Publish the documented public assets and verify remote refs and release metadata.", "Typecheck passes"],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
