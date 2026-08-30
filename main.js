@@ -2187,8 +2187,9 @@ function tourSteps(plugin) {
         "A workspace for your day: dashboards over the notes you already keep, "
         + "tasks in one file, and an optional layer that turns finishing things "
         + "into levels and achievements.",
-        "Everything is plain Markdown in your vault. Nothing is uploaded, and "
-        + "nothing but the Library ever touches the network.",
+        "Everything is plain Markdown in your vault. Core dashboards are "
+        + "local-first; optional Weather, Library, and AI companions make "
+        + "network requests only when you configure and use them.",
         "This walkthrough takes about ten minutes and moves around the app as "
         + "it goes. You can leave and come back — it remembers where you were.",
       ],
@@ -2326,12 +2327,11 @@ function tourSteps(plugin) {
         "`optional/email-import.py` reads Apple Mail through AppleScript, "
         + "**read-only**, and writes each message as a reference note with a "
         + "summary and any action items it can find.",
-        "On its own it extracts almost nothing useful \u2014 a pattern match "
-        + "over phrases like \"can you\" and \"by EOD\" fired on 13% of a real "
-        + "inbox and was right about a third of the time. Run "
-        + "`optional/mail-triage.py` first and a model does the reading "
-        + "instead: it decides what is worth importing, and only important "
-        + "mail reaches your vault.",
+        "Without triage, a phrase match cannot reliably distinguish an action "
+        + "asked of you from a request aimed at someone else. Run "
+        + "`optional/mail-triage.py` first: it classifies mail before import, "
+        + "so only important messages are considered for vault references and "
+        + "explicit action items.",
         "It needs Python and permission for Mail. It never sends, deletes or "
         + "marks anything.",
       ],
@@ -2344,9 +2344,9 @@ function tourSteps(plugin) {
       mac: true,
       body: [
         "Settings \u2192 Mail shows what the last run decided, and \u2014 more "
-        + "usefully \u2014 what it could not see. Apple Mail returns no body "
-        + "for a good share of Exchange messages; those get judged from the "
-        + "subject line and produce no tasks. The tab says how many.",
+        + "usefully \u2014 what it could not read. Some Apple Mail messages expose "
+        + "no usable body; those can be noted for review but never create a "
+        + "task from a subject line alone.",
         "It also lists every sender it has stopped reading. A sender is muted "
         + "after three separate unimportant messages, or immediately if it is "
         + "an automated address. One important message un-mutes them.",
@@ -2380,9 +2380,9 @@ function tourSteps(plugin) {
       body: [
         "`optional/messages-import.py` reads your local iMessage database and "
         + "writes a browsable, read-only catalogue of threads into the vault.",
-        "It is a search-and-recall tool rather than a task source. It needs Full "
-        + "Disk Access, which is a real permission to weigh — it is reading every "
-        + "message on the machine.",
+        "Optional task capture is separate and disabled until you enable it. "
+        + "Both need Full Disk Access, which is a real permission to weigh — "
+        + "the importer can read messages on the machine.",
       ],
     },
 
@@ -2454,11 +2454,10 @@ function tourSteps(plugin) {
         + "them, so you award them yourself in the Achievements note. That is "
         + "deliberate: some of the things worth rewarding are not things a "
         + "script can measure.",
-        "Artwork is a separate download \u2014 258 icons come to 78MB, too much "
-        + "to carry in a plugin that is otherwise under half a megabyte. Grab "
-        + "`achievement-art.zip` from the release and unzip it into the "
-        + "Achievement Art folder. Without it you get tier medallions, which is "
-        + "a normal state rather than a broken one.",
+        "Achievement art ships in `art-bundle.json`, the fourth release asset. "
+        + "Setup writes bundled icons without overwriting your own. A missing "
+        + "icon falls back to a tier medallion, which is a normal state rather "
+        + "than a broken one.",
       ],
       module: "game",
       actions: [
@@ -7217,8 +7216,9 @@ function settingsModules(plugin, root) {
   setPath(plugin, personal, "transcripts", "Transcript folder", "");
 
   const net = setSection(root, "Network",
-    "The only part of Uptick that uses the network. Everything else is your "
-    + "own vault, read and written on this machine.");
+    "The shared Library reads a public registry only when you turn it on and "
+    + "use it. Weather and optional AI companions have their own explicit "
+    + "configuration; core dashboards stay local to your vault.");
   setToggle(plugin, net, "modules.library", "Library",
     "Reads a public index of shared decks and downloads the ones you pick. "
     + "Nothing is ever uploaded. Its settings are under Panels.");

@@ -1,115 +1,175 @@
 # Uptick
 
-A dashboard workspace for Obsidian, with an optional experience layer.
+Uptick is a local-first execution workspace for Obsidian. It turns the Markdown
+you already own into a focused Home page, an actionable daily note, task and
+meeting views, reviews, study context, and an optional experience layer.
 
-Uptick renders your daily notes, tasks, meetings and reviews as dashboards
-instead of walls of Markdown — and, if you want it, turns finishing things into
-levels, achievements and a reward bank. Everything is local Markdown. Nothing
-leaves your vault.
+Its central question is: **what are my commitments today, what should I do
+next, and what can I finish before my next meeting?**
 
-> **Status:** early. It works well in the vault it was built in, and the
-> settings now make it configurable for others, but you are among the first
-> people to install it somewhere else. Expect rough edges and file issues.
+Uptick does not require an account, cloud service, API key, or another plugin
+for its core workflow. Your notes remain ordinary Markdown files in your vault.
 
-## What you get
+> **Release status:** Uptick 0.7.0 is an early public release. The core
+> dashboard and planning workflow are ready for a fresh vault; macOS companion
+> scripts are opt-in local integrations that you configure yourself.
 
-- **Home** — today at a glance: an editable three-item Now plan, next meeting,
-  integration freshness, open tasks, unread mail, recent notes, active projects,
-  and areas of focus.
-- **Daily notes** — a user-controlled three-item plan, priorities, scheduled
-  meetings, tasks due, a work log and an end-of-day review, each editable as a
-  card rather than a heading.
-- **Meetings** — agendas, notes and actions, with recurring series.
-- **Tasks** — one canonical Markdown file, with automatic priority and
-  difficulty scoring.
-- **Experience layer** *(optional)* — XP for finishing work and studying,
-  levels, 258 achievements, escalating decay on overdue tasks, a reward bank,
-  and an exam-readiness model built on FSRS.
+## What Uptick helps with
+
+| Feature | What it does | Problem it addresses |
+| --- | --- | --- |
+| **Home / Now** | Shows the next meeting, your current Today Plan, one explained next action, and integration freshness. | A dashboard should help you choose work, not make you scan several lists. |
+| **Today Plan** | Lets you select, order, replace, clear, finish, defer, or drop up to three commitments. It stores canonical task references, not copies. | A backlog does not make a realistic daily commitment. |
+| **Today page** | Provides a morning plan, priorities, work, meetings, work log, and end-of-day review in one daily note. | Planning and reflection otherwise become disconnected rituals. |
+| **Canonical tasks** | Uses Markdown checkboxes in one task inbox; tasks can include due dates, priority, difficulty, duration, and source links. | Your task data stays portable instead of becoming a private database. |
+| **Now recommender** | Suggests actionable overdue, due-today, explicit-priority, and captured tasks, plus an optional LearnKit review. Every suggestion has a reason and source. | Automation that cannot explain its choice is hard to trust. |
+| **Meeting and calendar context** | Reconciles meeting notes and, when configured, reads a local calendar cache for upcoming commitments and available time. | Tasks look possible in isolation even when the calendar says otherwise. |
+| **Weekly and monthly reviews** | Builds review pages from daily work, completed tasks, meetings, and notes. | Reflection is most useful when grounded in what actually happened. |
+| **LearnKit study context** | Surfaces due reviews, the weakest relevant domain, practice-exam context, and readiness blockers while LearnKit remains the review-state owner. | Study work competes with tasks unless it has a visible daily place. |
+| **Experience layer** *(optional)* | Calculates XP, levels, streaks, achievements, overdue decay, and a reward bank from your Markdown activity. | A feedback loop can reinforce an established execution habit. |
+| **Integration signals** | Marks Reminders, message capture, Granola, and LearnKit data fresh, stale, disabled, or not yet run. | Silent integrations make a dashboard misleading. |
 
 ## Install
 
-1. Download `main.js`, `styles.css`, `manifest.json` and `art-bundle.json` from the
-   [latest release](../../releases/latest).
-2. Put them in `YourVault/.obsidian/plugins/life-os/`.
-3. Enable **Uptick** in Settings → Community plugins.
+### What you need
+
+- Obsidian **1.4.0 or later**
+- A vault where **Community plugins** are enabled
+- `main.js`, `styles.css`, `manifest.json`, and `art-bundle.json` from the
+  [latest Uptick release](../../releases/latest)
+
+Nothing else is required for Home, Today, tasks, reviews, or core XP. You do
+not need an API key, Python, another plugin, or an account for the base
+installation.
+
+### Standard installation
+
+1. Create `YourVault/.obsidian/plugins/life-os/`.
+2. Download the four release assets into that exact folder:
+
+   ```text
+   YourVault/.obsidian/plugins/life-os/
+   ├── main.js
+   ├── styles.css
+   ├── manifest.json
+   └── art-bundle.json
+   ```
+
+3. In Obsidian, open **Settings → Community plugins**, reload Obsidian if
+   necessary, then enable **Uptick**.
 4. Run **Uptick: Set up this vault** from the command palette.
 
-On first launch a **guided walkthrough** opens in the right sidebar. It takes
-about ten minutes, moves around the app as it goes, and covers what each page
-is for, how tasks are scored, how the experience layer works, and what the
-macOS integrations need. Reopen it any time from Settings → Setup.
+Setup creates only missing folders, starter notes, and bundled achievement art.
+It never overwrites existing files, so it is safe to run again. For an update,
+replace the same four release assets and reload Obsidian. Keep `data.json`
+local to your vault; it contains settings and is not a release asset.
 
-Setup creates the folders and starter notes it needs. It never overwrites
-anything, so it is safe to run again.
+### Guided installation walkthrough
 
-### Point it at your own folders
+After a fresh setup, Uptick opens a persistent walkthrough in Obsidian's right
+sidebar. It is not a modal, so you can inspect the page a step opens and return
+without losing your place.
 
-Uptick ships assuming a PARA-ish layout, but every path is a setting. Open
-**Settings** in the Uptick sidebar → **Paths**, and point each one at folders
-you already use. Anything that does not exist is flagged.
+The walkthrough covers:
 
-Under **Modules** and **Layout** you can turn off whole features and individual
-cards.
+1. starter folders or existing paths;
+2. Home, Today, the canonical task inbox, and the daily review loop;
+3. priority and difficulty metadata;
+4. optional AI, mail, meeting, and Messages integrations;
+5. recalculating the experience layer;
+6. LearnKit, readiness, and the optional deck library; and
+7. Modules, Layout, and Paths settings.
 
-## The experience layer needs Python
+Use **Settings → Setup → Continue the walkthrough** to resume it, or run
+**Uptick: Restart the guided walkthrough** to start it again.
 
-This is the part to read before deciding whether you want it.
+### First-day configuration
 
-The dashboards work entirely on their own. **XP, levels, achievements, the
-reward bank and exam readiness are computed by a Python script that has to run
-on a schedule.** Without it those pages render, and stay at zero.
+Open **Settings → Uptick → Paths**. Uptick starts with a PARA-style layout, but
+every location is configurable: Home, daily/weekly/monthly notes, task inbox,
+meetings, reference notes, and game files. Point paths at folders you already
+use before moving notes; missing paths are flagged in settings.
+
+The default task inbox is `1 Tasks/Task Inbox.md`. A simple task is normal
+Markdown:
+
+```markdown
+- [ ] Send the project update 📅 2026-09-02 #task ^task-project-update
+  Source: [[Project meeting]]
+```
+
+The stable `^task-…` reference lets Today Plan point to this original task
+without creating a copy. Completing a planned task updates canonical Markdown,
+not a Reminders item or duplicate daily-note line.
+
+Add up to three items to **Today Plan** from the existing-task suggestions,
+then reorder or replace them until the plan is realistic. As the day changes,
+complete, defer, or drop the plan item and add short work-log entries. Uptick
+never reshuffles the plan, creates a task, changes a Reminder, schedules a
+calendar event, or writes to LearnKit merely because it recommends something.
+
+Use **Settings → Uptick → Modules** to disable whole areas and **Layout** to
+hide individual Home or daily-note cards.
+
+## Experience and study
+
+### Core experience layer: no Python required
+
+**Uptick: Recalculate XP, levels and achievements** calculates XP, levels,
+streaks, achievements, overdue decay, and the reward bank locally in JavaScript.
+It reads the vault and writes derived local Markdown/cache files. Run it when
+you want numbers to catch up; rerunning it is safe.
+
+Python 3.9+ is only needed for optional exam-readiness/card-count refreshes and
+the advanced companion scripts. The plugin preserves existing LearnKit-derived
+readiness cache data when it performs a local recalculation.
+
+### LearnKit and readiness
+
+Enable **Study** when you use LearnKit. When cards are due, Uptick can offer one
+study session as a Today Plan candidate and explain the weakest relevant domain.
+It keeps practice exams and readiness gates as context; it does not schedule
+study or modify LearnKit's database.
+
+For optional certification readiness/card-count refreshes, run the source-tree
+Python engine:
 
 ```bash
-# once, to check it works
-VAULT="/path/to/your/vault" python3 engine/xp-sync.py --vault "$VAULT"
+VAULT="/absolute/path/to/your/vault" python3 engine/xp-sync.py --vault "$VAULT"
 ```
 
-Then run it periodically. On macOS, edit and load
-`engine/life-os-xp-sync.plist`; anywhere else, a cron entry works:
+It has no third-party Python package dependency and needs no schedule unless
+you want automatic readiness refreshes.
 
-```cron
-0 */3 * * * VAULT="/path/to/vault" /usr/bin/python3 /path/to/engine/xp-sync.py --vault "$VAULT"
-```
+## Optional Obsidian plugins
 
-Requires Python 3.9+. No packages to install.
+Uptick parses its own Markdown and renders without these plugins. Install them
+only when you want the capability shown below. **Settings → Uptick → Setup**
+shows whether each is installed.
 
-Why it is not in the plugin: it started as a local script and has not been
-ported yet. Porting it is the main thing standing between this and a
-one-click install — see [docs/distribution-plan.md](docs/distribution-plan.md).
-
-## Companion plugins
-
-**None is required.** Uptick reads your Markdown directly and every dashboard
-renders without any of them. Several pages *link* to what they provide, so a
-vault without them has working pages pointing at notes nobody made — which
-reads as Uptick being broken rather than a plugin being absent.
-
-Settings → Setup lists them and shows which you already have:
-
-| Plugin | What it adds |
+| Plugin | Optional capability it adds |
 |---|---|
-| **Tasks** | Uptick reads and writes its date format (📅 due, ✅ done, ➕ created) |
-| **Task List Kanban** | the board the task pages link to |
-| **Dataview** | shows `[priority:: N]` / `[difficulty:: N]` as properties |
-| **LearnKit** | flashcards and the spaced repetition the study pages are built on |
-| **Periodic Notes** | daily/weekly/monthly notes on a schedule |
+| [Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks) | Renders Tasks-style due, done, and created dates and query blocks. Uptick can still read the text without it. |
+| [Task List Kanban](https://github.com/ryxryx/task-list-kanban) | Provides the Kanban board linked from Uptick task pages. |
+| [Dataview](https://github.com/blacksmithgu/obsidian-dataview) | Displays inline fields such as `[priority:: 3]` and `[difficulty:: 2]` as properties. |
+| LearnKit | Provides Markdown flashcards, quizzes, and spaced-repetition scheduling. Uptick reads derived study/readiness data; it does not write the LearnKit database. |
+| [Periodic Notes](https://github.com/liamcain/obsidian-periodic-notes) | Creates daily, weekly, and monthly notes on a schedule. Uptick can create/open its own notes without it. |
+
+If LearnKit is absent, turn off the **Study** module or use the Study Hub note
+that Uptick creates. No study data is fabricated.
 
 ## Weather
 
-Set a **Visual Crossing API key** and a location under Settings → Panels, then
-**Uptick: Fetch the weather**. The free tier allows 1000 requests a day, which
-is far more than this needs.
+Weather is optional. In **Settings → Uptick → Panels → Weather**, enter a
+Visual Crossing API key, location, and units, then run **Uptick: Fetch the
+weather**. Uptick writes a local cache that dashboards read; it does not fetch
+in the background.
 
-Nothing fetches on its own — run the command, or schedule
-`optional/weather-fetch.py`, which writes the same cache. The key lives in your
-settings file rather than an environment variable, because Obsidian has no
-environment to read and this key is read-only, free and rate-limited. It is
-sent to Visual Crossing and nowhere else, and never appears in a notice, an
-error or the console.
-
-Weather and the Library are the only two things in Uptick that use the network,
-and both are off until you configure them. `structure_test.js` fails if a third
-appears.
+The key and location are sent to Visual Crossing only when you explicitly fetch
+weather. You can instead schedule `optional/weather-fetch.py` from a source
+checkout. The shared deck **Library** is also optional and contacts its
+configured public registry only when you enable and use it; it never uploads
+notes automatically.
 
 ## Themes
 
@@ -119,29 +179,46 @@ theme's `cssclasses: max` and on a CSS snippet that existed only in the author's
 vault — a fresh install rendered every dashboard in a narrow column with nothing
 to explain why.
 
-## `optional/` — macOS scripts, unsupported
+## Advanced macOS companions
 
-The importers that fill this vault from Apple Mail, Calendar, Messages, Granola
-and Photos. They are here as **reference, not as a feature**: macOS-only, they
-assume tooling you probably do not have, and they are not maintained for anyone
-else's setup. Read them before running them.
+The release ZIP contains the plugin assets only. The optional scripts live in
+this repository's `optional/` directory, so clone or download the source tree
+if you want them:
 
-Each one requires `VAULT` to be set and will refuse to guess.
+```bash
+git clone https://github.com/jcranokc/obsidian-uptick-public.git
+cd obsidian-uptick-public
+```
+
+These integrations are intentionally **off by default**. Review each script,
+use a status or dry-run mode first where available, and set `VAULT` to the
+absolute path of the intended vault. They are not necessary for core planning.
+
+| Integration | Additional requirement | What it does | First safe check |
+| --- | --- | --- | --- |
+| **Apple Reminders** | macOS, [`remindctl`](https://github.com/steipete/remindctl), and Reminders permission | Optional two-way projection between canonical Markdown tasks and selected Reminders lists. | `python3 optional/reminders-sync.py --vault "$VAULT" --status` |
+| **Apple Calendar** | macOS and Calendar automation permission | Reads a local Calendar cache for dashboard context; writes require a private configured target ID. | `VAULT="$VAULT" python3 optional/calendar-export.py` |
+| **Apple Mail** | macOS, Python 3.9+, Mail automation permission; optional model configuration for triage | Imports mail references and can create tasks from explicit workflow rules. | `VAULT="$VAULT" python3 optional/mail-triage.py --hours 24 --dry-run` |
+| **Messages** | macOS, Python 3.9+, and Full Disk Access | Imports a local read-only Messages catalogue. Task capture remains disabled until explicitly enabled. | `VAULT="$VAULT" python3 optional/messages-import.py --days 7 --dry-run` |
+| **Granola** | A locally configured Granola export/MCP workflow and, for AI extraction, model configuration | Imports meeting material and can create tasks only for explicit commitments. | Review `optional/granola-sync.sh` before running it. |
+| **Photos** | macOS and Photos automation permission | Exports a downscaled local photo-gallery cache for the rotating photo card. | Review `optional/photo-gallery-sync.sh` before running it. |
+| **Scheduled jobs** | macOS desktop plus jobs you configured yourself | Displays and optionally re-runs your own jobs; Uptick does not install a scheduler. | Leave the module off until jobs already work outside Obsidian. |
+
+For the full local sync sequence, inspect `optional/vault-sync.sh`. It
+orchestrates only tools you choose to configure; it is not part of normal
+installation.
 
 ### Mail triage
 
-`optional/mail-triage.py` decides which mail is worth importing at all.
+`optional/mail-triage.py` classifies recent Apple Mail before
+`email-import.py` creates vault reference notes. This reduces noisy imports:
+mail triage can mark a message **important**, **routine**, or **spam**, and
+`email-import.py` imports only the important messages.
 
-Without it, `email-import.py` imports everything and runs a regex over each
-message looking for request phrases. That approach answers "does this contain a
-request?" when the real question is "is a request being made **of me**, that I
-now owe?" — which is a question about meaning. On a real inbox the regex fired
-on 13% of mail and was right about a third of the time.
-
-Triage runs first, classifies each message as **important / routine / spam**,
-and records what it learned about the *sender*. `email-import.py` then imports
-only the important ones, and builds its tasks from the classifier's output —
-with a priority, a difficulty and a due date — instead of from a regex match.
+The optional workflow is intentionally reviewable. A task can be created only
+when the imported message contains an explicit actionable commitment; the
+dashboard shows which messages did not expose a usable body, and muted senders
+remain visible and reversible in **Settings → Uptick → Mail**.
 
 ```bash
 export VAULT=/path/to/your/vault
@@ -150,7 +227,7 @@ python3 optional/mail-triage.py --hours 24                        # then commit
 python3 optional/email-import.py --hours 24
 ```
 
-Senders whose mail is never important stop being analysed:
+Senders whose mail is repeatedly not important can stop being analysed:
 
 - an **automated** sender (no-reply address, bulk footer) is muted the first
   time its mail is not important
@@ -158,20 +235,29 @@ Senders whose mail is never important stop being analysed:
   FYI from a colleague says nothing about the request they send next week
 - one important message un-mutes a sender completely
 
-So the volume sent to the classifier shrinks as the list learns, and the mail
-you actually care about keeps being read.
+Review the muted-sender list regularly. The mail script does not send, delete,
+or mark Apple Mail messages.
 
 ### Which model
 
-Three optional features can send text to a model — mail triage, the meeting
-import, and the Reminders workflow assistant. Nothing else in Uptick does; XP,
-levels, all 258 achievements and exam readiness are arithmetic over your own
-notes.
+Three optional features can send text to a model — mail triage, meeting import,
+and the Reminders workflow assistant. Nothing else in Uptick does; XP, levels,
+achievements, task ranking, Today Plan suggestions, and normal dashboards are
+local calculations over your own notes.
 
 Pick a provider in **Settings → Modules → AI**. Most speak the same API, so the
 list is broad: Anthropic, OpenAI, Google, DeepSeek, Moonshot (Kimi), Zhipu
 (GLM), Alibaba (Qwen), MiniMax, xAI, Mistral, Groq, Together, OpenRouter, a
 local Ollama or LM Studio, or the Codex CLI if you are already signed in to one.
+
+For a hosted provider, place the key in an environment variable or an
+absolute-path key file **outside** the vault, then enter the variable name or
+file path in the AI settings. For Codex, install the CLI and sign in. Verify
+the configuration from the source tree:
+
+```bash
+VAULT="/absolute/path/to/your/vault" python3 optional/llm.py
+```
 
 ### Apple Reminders (optional, macOS)
 
@@ -255,61 +341,68 @@ Both scripts refuse before doing any work when the model is unreachable, and
 say what to do — the exact `export`, or `npm i -g @openai/codex` and `codex
 login` — rather than failing partway through with a stack trace.
 
-**This step is not local.** Subject, sender and the first 1500 characters of
-each *unclassified* message go to the classifier — everything else in Uptick
-is vault I/O on your own machine. Muted senders are never sent at all. Decide
-whether that is acceptable for your mail before turning it on; if your inbox is
-work mail, that is a question for your employer's data policy, not just for you.
+**This step is not local.** The classifier sends the configured subject,
+sender, and bounded message excerpt for each unclassified message to the model
+provider you selected. Muted senders are not sent. Decide whether that is
+acceptable for the mailbox you connect, especially if its content is subject to
+an organisation's data policy.
 
-The classifier is never asked whether a message is important. It is asked
-narrower questions — is this correspondence or a notification, is the owner
-being asked to act, **copy the sentence that asks**, who is it aimed at — and
-the verdict is worked out from the answers here, in code. A message is
-important only when the owner is asked to act, the request is not aimed at
-someone else, and the quoted sentence is genuinely in the body.
+Mail content is treated as untrusted input. The companion requires evidence
+from the message body before creating a task, deduplicates re-deliveries, and
+clamps model output before it reaches the vault. It does not create a task from
+a subject line alone.
 
-That last check does the most work. A model that has decided a message is a
-request will produce a plausible-sounding quote for it either way; only the
-body settles it. Asking for a straight important/routine label gave two
-different answers on the same mail a day apart, and quoting does not drift the
-same way.
-
-**Apple Mail cannot always hand over a body.** Roughly two in five Exchange
-messages come back with an empty body *and* an empty preview — the signature of
-a message synced as headers only, read on another device, whose content this Mac
-never downloaded. Retrying does not help; the same copy fails every time.
-
-Two things soften it. Exchange often delivers a message twice, and Mail will
-extract one copy cleanly while returning nothing for its twin — so a copy with
-no body borrows its twin's. And where nothing can be recovered, the subject
-still places the message well enough to classify it, but **no task is ever
-written from a subject line**: a task needs specifics that only the body
-carries. Those messages are flagged and counted, so the rule can be judged
-against what it does.
-
-Re-deliveries are collapsed before classification: two copies of one message,
-same sender and subject within two minutes, are judged once.
-
-Near-identical tasks are merged across a run: six notices about three sandboxes
-should be three tasks, not six. Comparison is on distinguishing words only, so
-"provisioning for FullTest" and "provisioning for INTG" stay separate — the
-sandbox name is the whole difference between them. The survivor records how
-many it stands for.
-
-Message bodies are untrusted input to a prompt, so the classifier is told to
-treat any instructions found inside a message as evidence that the message is
-manipulative, and its output is clamped before anything reaches your vault:
-tasks are capped and stripped, values clamped, non-ISO dates dropped, and a
-message id the classifier invents is discarded.
-
-Everything it has muted is listed under **Settings → Mail**, with an Unmute
-button, or from the command line:
+Everything currently muted is listed under **Settings → Uptick → Mail**, with
+an Unmute control. The same local controls are available from the command line:
 
 ```bash
 python3 optional/mail-triage.py --reset-sender someone@example.com
 python3 optional/mail-triage.py --pin-sender always-read@example.com
 python3 optional/mail-triage.py --mute-sender never-read@example.com
 ```
+
+### Private integration configuration
+
+Calendar writes, task-audit Reminders writes, ownership matching, and recurring
+series rules are deliberately private configuration. Copy the template below
+to your vault and keep it ignored:
+
+```text
+optional/uptick-private.env.example
+    → YourVault/4 System/Automation/.uptick-private.env
+```
+
+Set only the values you need:
+
+```dotenv
+UPTICK_CALENDAR_ID=
+UPTICK_REMINDER_LIST_ID=
+UPTICK_OWNER_PATTERN=
+UPTICK_ASSIGNEE_MARKERS=
+UPTICK_SERIES_RULES_FILE=
+```
+
+Calendar and task-audit writes fail closed when their required target IDs are
+missing. Do not put calendar IDs, Reminders IDs, account paths, rules, or API
+keys in GitHub, plugin settings, issue text, or public screenshots. See
+[public-release hardening](docs/public-release-hardening.md) for release
+checks.
+
+## Privacy and data boundaries
+
+- Core Uptick reads and writes local Markdown and local plugin cache/settings
+  files only.
+- Weather contacts Visual Crossing only after an explicit fetch.
+- Library contacts the configured public registry only when enabled and used.
+- AI companions send only the text required by their configured operation to
+  the provider you choose.
+- Apple companions operate through your local macOS permissions.
+- Reminders and Calendar writes stay disabled until you configure private
+  target IDs.
+
+Review a companion before granting Full Disk Access, Mail, Calendar, Photos, or
+Reminders permission. Integration status surfaces freshness, failure, and
+disabled states instead of silently presenting stale data as current.
 
 ## Development
 
@@ -368,13 +461,8 @@ and uses fixtures in `engine/tests/fixtures/`.
 into your vault, and never overwrites one you put there yourself.
 
 They are 128px in the bundle — enough for the 44px browser tile and the ~160px
-unlock popup on a retina display — which keeps it to a few megabytes beside a
-plugin that is otherwise under half a megabyte. The full-resolution 512px set is
-`achievement-art.zip` on the same release if you want it:
-
-```bash
-unzip achievement-art.zip -d "<your vault>/4 System/Game"
-```
+unlock popup on a retina display — which keeps the release compact. There is no
+separate artwork download required for a standard installation.
 
 Uptick finds them by slug: `4 System/Game/Achievement Art/<slug>.png` (`jpg`,
 `webp`, `gif` and `svg` work too). Anything without a file falls back to a tier

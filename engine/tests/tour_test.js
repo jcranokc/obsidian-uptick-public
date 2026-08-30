@@ -85,8 +85,9 @@ if (ai) {
 const mail = steps.find((s) => /Mail →/.test(s.title));
 check("the mail step no longer claims extraction is pattern-based",
       mail && !/pattern-based, not AI/i.test(mail.body.join(" ")));
-check("and admits the pattern match on its own was poor",
-      mail && /13%/.test(mail.body.join(" ")));
+check("and explains why phrase matching is not enough",
+      mail && /phrase match/i.test(mail.body.join(" ")) &&
+        /request aimed at someone else/i.test(mail.body.join(" ")));
 /* This used to pin "the XP layer needs Python on a schedule", which was true
  * and is not any more. What has to stay honest is the remaining gap: two
  * things still need it, and the step should say which. */
