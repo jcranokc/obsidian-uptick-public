@@ -68,7 +68,7 @@
       "description": "As an Uptick user, I want unclear new tasks improved into concise, actionable wording and routed appropriately without an opaque model silently changing commitments.",
       "acceptanceCriteria": [
         "Generate an explainable cleanup/reword proposal that distinguishes deterministic formatting changes from semantic wording changes.",
-        "Use local rules first. Optional model assistance is off until explicitly configured, uses the existing provider privacy disclosure, and sends only the task fields required for the proposal.",
+        "Use local rules first. Optional model assistance runs only when explicitly configured and preflight-ready in the LaunchAgent environment, uses the existing provider privacy disclosure, and sends only title/details.",
         "Allow approve, edit, reject, and defer actions. Approval may update the linked Markdown task and its Reminder title/list/tags in the same reconciliation cycle.",
         "High-confidence local routes may move automatically. Semantic rewording is automatic only when the configured model agrees with the local route and returns a valid concise action; unavailable or disagreeing models leave deterministic wording unchanged.",
         "Keep the original incoming wording in private activity history long enough to explain a proposal, never in public source or public logs.",
