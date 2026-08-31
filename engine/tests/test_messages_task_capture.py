@@ -4,6 +4,7 @@ import json
 import subprocess
 import tempfile
 import unittest
+import datetime as dt
 from pathlib import Path
 
 
@@ -73,6 +74,23 @@ class MessagesTaskCaptureTests(unittest.TestCase):
         self.assertEqual(result["created"], 0)
         text = (self.vault / "2 Work/Tasks/Task Inbox.md").read_text(encoding="utf-8")
         self.assertEqual(text.count("^task-imessage-"), 6)
+
+    def test_historical_messages_are_ignored_even_with_a_reset_cursor(self):
+        fixture = self.vault / "messages.json"
+        today = dt.date.today().isoformat()
+        fixture.write_text(json.dumps([
+            {"rowid": 1, "guid": "old", "body": "Please buy old item", "when": "2020-01-01T12:00:00-06:00", "is_from_me": False},
+            {"rowid": 2, "guid": "today", "body": "Please buy today's item", "when": f"{today}T12:00:00-05:00", "is_from_me": False},
+        ]), encoding="utf-8")
+        result = subprocess.run(
+            ["python3", str(SCRIPT), "--vault", str(self.vault), "--scan", "--fixture", str(fixture)],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["created"], 2)
+        text = (self.vault / "2 Work/Tasks/Task Inbox.md").read_text(encoding="utf-8")
+        self.assertNotIn("old item", text)
+        self.assertIn("today's item", text)
 
 
 if __name__ == "__main__":

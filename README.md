@@ -374,10 +374,12 @@ invented. See the
 [Reminders workflow assistant plan](docs/reminders-workflow-assistant-plan.md).
 
 When enabled, **iMessage task capture** runs inside the same 10-minute
-Reminders sync. It reads new local incoming messages, filters obvious system
-noise, and creates only actionable requests in the canonical Task Inbox.
-Messages data and the capture cursor stay local. It requires Full Disk Access
-and is off by default.
+Reminders sync. It reads only incoming messages whose received date is today
+in the Mac's local timezone, even after a cursor reset or first install; older
+history is advanced past and never imported. It filters obvious system noise
+and creates only actionable requests in the canonical Task Inbox. Messages
+data and the capture cursor stay local. It requires Full Disk Access and is off
+by default.
 
 When enabled, **sent-email completion** also runs inside the same sync. It
 reads new Sent Mail locally and closes only one uniquely linked task that has a

@@ -31,6 +31,7 @@ DEFAULT = {
     "excludedChats": [],
     "excludedSenders": [],
     "statePath": "4 System/Automation/reminders-sync-state.json",
+    "todayOnly": True,
 }
 ACTION_RE = re.compile(
     r"(?i)\b(?:please|can you|could you|would you|need you to|remember to|"
@@ -301,6 +302,19 @@ def scan(vault: Path, dry_run: bool = False, fixture: Path | None = None) -> dic
         guid = str(message.get("guid") or f"fixture-{rowid}")
         if message.get("is_from_me") or guid in processed:
             continue
+        # The cursor is an efficiency guard, not the privacy boundary. On a
+        # first run (or after a reset) SQLite can return years of history;
+        # production imports are limited to messages received on today's local
+        # calendar date. Fixtures without a timestamp remain backwards-compatible.
+        if capture.get("todayOnly", True) and message.get("when"):
+            try:
+                received = dt.datetime.fromisoformat(str(message["when"]).replace("Z", "+00:00")).astimezone()
+            except (TypeError, ValueError):
+                received = None
+            if received is None or received.date() != dt.date.today():
+                processed[guid] = {"status": "outside-today-window", "rowid": rowid}
+                filtered += 1
+                continue
         if str(message.get("chat") or "").casefold() in excluded_chats or str(message.get("sender") or "").casefold() in excluded_senders:
             processed[guid] = {"status": "excluded", "rowid": rowid}
             filtered += 1
