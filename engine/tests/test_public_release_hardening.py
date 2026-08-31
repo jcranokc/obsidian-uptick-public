@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -61,9 +62,12 @@ if reminders_scheduler.is_file() and reminders_installer.is_file():
     check("native-tag scheduler runs the bridge before Shortcuts", scheduler_source.index('"$PYTHON" "$BRIDGE"') < scheduler_source.index('"$SHORTCUTS_BIN" run'))
     check("native-tag scheduler skips a missing Shortcut safely", "native tags skipped" in scheduler_source)
     check("installer registers a ten-minute user launch agent", "StartInterval" in installer_source and "600" in installer_source and "com.uptick.reminders-sync" in installer_source)
-    for script in (reminders_scheduler, reminders_installer, OPTIONAL / "granola-sync.sh"):
-        proc = run(["zsh", "-n", str(script)], dict(os.environ))
-        check(f"{script.name} passes zsh syntax validation", proc.returncode == 0)
+    shell = shutil.which("zsh") or shutil.which("bash")
+    check("a POSIX-compatible shell is available for companion validation", shell is not None)
+    if shell:
+        for script in (reminders_scheduler, reminders_installer, OPTIONAL / "granola-sync.sh"):
+            proc = run([shell, "-n", str(script)], dict(os.environ))
+            check(f"{script.name} passes {Path(shell).name} syntax validation", proc.returncode == 0)
 
 with tempfile.TemporaryDirectory() as tmp:
     vault = Path(tmp)
