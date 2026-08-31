@@ -1,0 +1,131 @@
+{
+  "project": "Uptick",
+  "branchName": "ralph/reminders-reconciliation",
+  "description": "Make Apple Reminders a trustworthy bidirectional intake: propagate deliberate Apple-side deletion to the linked canonical Markdown task, normalize new reminders from the configured seven-list workflow, optionally improve wording through a reviewable cleanup flow, and verify the ten-minute macOS bridge is installed and healthy.",
+  "decisions": {
+    "canonicalTaskStore": "A linked Apple Reminder may create, update, complete, reopen, move, or deliberately delete its canonical Markdown task. Unlinked Markdown tasks remain untouched by Apple-side deletion.",
+    "configuredReminderLists": ["Inbox", "Quick Wins", "Waiting", "Work", "Personal", "House", "Repeat"],
+    "routing": "The list selected in Apple Reminders is authoritative by default. Inbox items may receive a local or reviewable routing recommendation; they are moved only under an explicit auto-route setting or an approved review action.",
+    "cleanup": "Deterministic cleanup runs automatically. Semantic rewording is an explainable preview that needs user approval unless a later explicit setting authorizes automatic rewording.",
+    "safety": "A missing Reminder becomes a deletion signal only after a successful authoritative read of its configured list. Permission failures, unavailable lists, and partial reads must fail closed and never delete Markdown tasks.",
+    "privateState": "Reminder IDs, tombstones, audit history, list IDs, Mac paths, and model credentials remain local and ignored. The public repository contains no personal task content or runtime state."
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Configure the seven-list Reminders workflow",
+      "description": "As an Uptick user, I want Inbox, Quick Wins, Waiting, Work, Personal, House, and Repeat to be explicit configurable Apple Reminders sources so that a reminder created in any of my working lists is imported predictably.",
+      "acceptanceCriteria": [
+        "Expose configurable names and private IDs for Inbox, Quick Wins, Waiting, Work, Personal, House, and Repeat; migrate existing Work, Personal, House, Waiting, and Inbox settings without overwriting user changes.",
+        "Read and import only the configured lists. A reminder in an unconfigured Apple list is ignored and produces no task, move, or deletion.",
+        "Map the selected list to canonical metadata: Inbox -> #needs-triage, Quick Wins -> #quick-win and the configured quick-win duration, Waiting -> #blocked and #follow-up, Work -> #work, Personal -> #personal, House -> #house, and Repeat -> #repeat plus supported recurrence metadata.",
+        "Keep list identifiers, settings, and per-item links in ignored local state; public defaults contain names only and no account identifiers.",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "fixtureCoverage": ["seven-list settings migration", "configured-list enumeration", "unconfigured-list exclusion", "private-ID boundary"],
+      "notes": "Repeat recurrence is mirrored only when remindctl exposes a stable recurrence payload; otherwise the UI reports recurrence as unsupported rather than inventing repeat behavior."
+    },
+    {
+      "id": "US-002",
+      "title": "Propagate confirmed Apple-side deletion to Markdown",
+      "description": "As an Uptick user, I want deleting a linked incomplete Reminder in Apple Reminders to remove its linked canonical Markdown task so that the two systems do not resurrect work I intentionally deleted.",
+      "acceptanceCriteria": [
+        "Treat a missing linked Reminder as a deletion only after its configured list was read successfully and the exact linked ID is absent; permission errors, an unavailable list, an empty partial response, and a sync failure cannot cause deletion.",
+        "Remove only the exact linked task checkbox and bridge-owned Details line from the configured Task Inbox. Preserve unrelated Markdown, manually authored child notes, and unlinked tasks.",
+        "Record a private deletion tombstone with Reminder ID, task ID, timestamp, list, and source so the next sync does not recreate either side; support an explicit restore action from the private activity view.",
+        "Deleting a parent follows an explicit hierarchy rule: delete linked descendants only when they were mirrored from that Apple parent; otherwise hold the parent for review rather than deleting user-authored children.",
+        "Dry-run reports proposed deletions without writing; live deletion is idempotent and is recorded in sync activity without exposing private IDs in the UI.",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "fixtureCoverage": ["single linked deletion", "missing-list fail-closed", "permission failure fail-closed", "parent-child deletion ownership", "tombstone prevents resurrection", "dry-run is non-mutating"],
+      "notes": "Deletion is intentionally distinct from completion. Completing a Reminder continues to mark the linked Markdown task complete."
+    },
+    {
+      "id": "US-003",
+      "title": "Import and normalize newly created Apple Reminders",
+      "description": "As an Uptick user, I want a new Reminder in one of my configured lists to become one understandable, linked Markdown task without duplicate reminders or invented task data.",
+      "acceptanceCriteria": [
+        "Import every previously unlinked Reminder from a configured list once, assign a stable task/reminder link, and preserve title, notes, due date, priority, completion, flag, URL, and supported recurrence data.",
+        "Run deterministic cleanup: remove transport syntax, duplicate tags, Obsidian block IDs, formatting artifacts, and redundant whitespace; place substantive Reminder notes in a Details line.",
+        "Do not invent a due date when Apple supplied none. Apply only configured default tags such as duration and status, with clear source attribution in the private activity record.",
+        "Write the normalized title, canonical tags, and configured list back to the linked Reminder only after successful import; then invoke the native-tag Shortcut after the bridge succeeds.",
+        "Use list selection as the default route. Inbox and Quick Wins may receive a recommendation, but ambiguous input remains in Inbox with #needs-triage rather than silently moving it.",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "fixtureCoverage": ["one import per configured list", "stable-ID idempotency", "no-due-date preservation", "details preservation", "native-tag handoff", "ambiguous Inbox remains triaged"],
+      "notes": "The cleanup pass must not change a task's meaning, delete user notes, or copy private Reminder IDs into Markdown."
+    },
+    {
+      "id": "US-004",
+      "title": "Provide clear, reviewable task rewording and routing",
+      "description": "As an Uptick user, I want unclear new tasks improved into concise, actionable wording and routed appropriately without an opaque model silently changing commitments.",
+      "acceptanceCriteria": [
+        "Generate an explainable cleanup/reword proposal that distinguishes deterministic formatting changes from semantic wording changes.",
+        "Use local rules first. Optional model assistance is off until explicitly configured, uses the existing provider privacy disclosure, and sends only the task fields required for the proposal.",
+        "Allow approve, edit, reject, and defer actions. Approval may update the linked Markdown task and its Reminder title/list/tags in the same reconciliation cycle.",
+        "Support an explicit auto-route setting for high-confidence Inbox and Quick Wins recommendations. Without it, no semantic move occurs automatically; ties, low confidence, and unsupported Repeat recurrence stay visible for review.",
+        "Keep the original incoming wording in private activity history long enough to explain a proposal, never in public source or public logs.",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "fixtureCoverage": ["deterministic cleanup", "approved rewording", "rejected rewording", "local high-confidence route", "tie remains Inbox", "optional-provider disclosure"],
+      "notes": "No default automatic semantic rewording: an understandable task is valuable only if the commitment's meaning is preserved."
+    },
+    {
+      "id": "US-005",
+      "title": "Reconcile moves, tags, and repeat behavior without conflicts",
+      "description": "As an Uptick user, I want list changes, tags, flags, completion, and recurrence to stay consistent across Apple Reminders and Obsidian after intake or review.",
+      "acceptanceCriteria": [
+        "Treat direct list moves as category changes and update corresponding canonical tags; preserve explicit user tags unless they contradict the selected list's managed category.",
+        "Make the native-tag Shortcut run only after the bridge succeeds and report missing Shortcut, permission, or tag failures as stale/failed integration status without discarding task changes.",
+        "Apply a documented field-level conflict policy, record conflicts privately, and never delete or overwrite a task solely because a concurrent reconciliation is ambiguous.",
+        "Prevent duplicate imports, duplicate status/duration tags, and endless list/tag oscillation across two or more sync runs.",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "fixtureCoverage": ["Apple list move", "Obsidian category move", "native tag failure", "concurrent field conflict", "two-cycle stability", "Repeat recurrence boundary"],
+      "notes": "Native Apple tags remain a projection. Markdown plus private link state remain the cross-system identity source."
+    },
+    {
+      "id": "US-006",
+      "title": "Install and verify the ten-minute macOS bridge",
+      "description": "As an Uptick user, I want the Reminders bridge installed, active, and observable on my Mac so that two-way changes are processed every ten minutes even while Obsidian is closed.",
+      "acceptanceCriteria": [
+        "After implementation verification, run the explicit installer against the intended vault and install or upgrade only Uptick-owned companion files and the com.uptick.reminders-sync user LaunchAgent.",
+        "Verify launchctl shows the agent bootstrapped for the current GUI user, its plist has a 600-second StartInterval and RunAtLoad, and kickstart completes without error.",
+        "Verify remindctl authorization, the seven configured lists, the installed native-tag Shortcut name, writable local log/state paths, and a successful dry-run before enabling normal sync.",
+        "Run one controlled live reconciliation with a non-sensitive fixture or approved test item, then verify the activity record and log show bridge success followed by native-tag processing.",
+        "Surface fresh, stale, disabled, and failed status in Uptick; document safe repair, upgrade, and uninstall behavior without deleting user tasks, reminders, state, or the Shortcut.",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "fixtureCoverage": ["installer preflight", "LaunchAgent plist fields", "launchctl status parser", "missing Shortcut state", "failed bridge does not run Shortcut", "post-install smoke result"],
+      "notes": "Installation and macOS permissions are action-time owner-approved steps. Do not install a scheduler while only writing or reviewing this PRD."
+    },
+    {
+      "id": "US-007",
+      "title": "Document and test the bidirectional contract",
+      "description": "As an Uptick user, I want clear documentation and regression coverage so I know exactly what creating, moving, completing, deleting, rewording, and scheduling do.",
+      "acceptanceCriteria": [
+        "Update the README and guided walkthrough with the seven-list table, deletion behavior, cleanup/reword review boundary, list authority, supported Repeat behavior, and 10-minute LaunchAgent verification steps.",
+        "Add end-to-end fixtures for create, edit, move, complete, delete, tombstone, restore, conflict, disabled module, unavailable list, stale integration, and absent native Shortcut states.",
+        "Run Reminders, workflow-assistant, renderer, structure, clean-install, public-release-boundary, release-audit, Python syntax, JavaScript syntax, and macOS smoke checks.",
+        "Confirm no private task text, list IDs, account values, local vault paths, or live state enter tracked files, tests, release assets, or public logs.",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "fixtureCoverage": ["documentation command/link integrity", "seven-list public-safe fixture", "privacy regression", "full sync lifecycle"],
+      "notes": "Release packaging remains limited to documented public plugin assets; macOS helpers remain source-tree companions."
+    }
+  ]
+}
