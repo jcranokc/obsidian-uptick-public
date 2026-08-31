@@ -6792,7 +6792,7 @@ async function renderSyncActivity(plugin, root, cfg, ctx, redraw) {
   const head = workflowHeader(plugin, root, "Sync activity", "A permanent local audit of workflow and Reminders changes.");
   mkBtn(head, "Refresh", redraw, "primary");
   const filter = head.createEl("select", { cls: "lifeos-setselect" });
-  for (const value of ["all", "sync", "triage", "reschedule", "waiting-action", "email-completion", "error"]) {
+  for (const value of ["all", "sync", "reminder-deleted", "reminder-restored", "reminder-deletion-review", "triage", "reschedule", "waiting-action", "email-completion", "error"]) {
     const option = filter.createEl("option", { text: value === "all" ? "All events" : value });
     option.value = value;
   }
@@ -6831,6 +6831,14 @@ async function renderSyncActivity(plugin, root, cfg, ctx, redraw) {
     const summary = Object.entries(event).filter(([key]) => !["at", "kind", "task", "parent", "reminderId", "mailId", "url"].includes(key)).map(([key, value]) => `${key}: ${String(value).slice(0, 140)}`).join(" · ");
     el(row, "span", "lifeos-task-due", summary.slice(0, 140));
     if (event.task) mkBtn(row, "Open task", () => plugin.openWorkflowTaskDetail(event.task));
+    if (event.kind === "reminder-deleted" && event.task) mkBtn(row, "Restore", async () => {
+      const ok = await prompt(plugin.app, { title: "Restore deleted Reminder task?",
+        help: "Restores the private 30-day tombstone and recreates the Apple Reminder.", placeholder: "RESTORE", cta: "Restore" });
+      if (String(ok).trim().toUpperCase() !== "RESTORE") return;
+      const out = await plugin.runReminderBridge(["--restore-deletion", String(event.task)]);
+      if (out.code) return new Notice((out.stderr || "Could not restore deletion").slice(0, 180));
+      new Notice("Reminder task restored."); await redraw();
+    });
   }
 }
 
@@ -7598,8 +7606,15 @@ async function settingsReminders(plugin, root, state) {
   };
   setReminderList(intro, "reminders.inboxList", "Inbox list",
     "New or uncertain tasks remain here until you classify them.", "Inbox");
+  setReminderList(intro, "reminders.quickWinsList", "Quick Wins list",
+    "Short actionable reminders stay here and retain #quick-win and #10min.", "Quick Wins");
   setReminderList(intro, "reminders.waitingList", "Waiting list",
     "Blocked and dependency tasks are routed here.", "Waiting");
+  el(intro, "div", "lifeos-setwarning", "Synced lists: Inbox, Quick Wins, Waiting, Work, Personal, and House. Repeat remains Apple-only and is never imported, edited, tagged, or deletion-scanned.");
+
+  const intake = setSection(root, "Automatic intake cleanup", "New Inbox and Quick Wins reminders are cleaned locally. High-confidence routing is automatic; model rewording runs only when a configured provider passes preflight and agrees with local routing.");
+  setToggle(plugin, intake, "reminders.autoIntake.enabled", "Enable automatic intake cleanup", "Never invents due dates, assignees, commitments, or recurrence.");
+  setToggle(plugin, intake, "reminders.autoIntake.aiEnabled", "Use configured provider for high-confidence rewording", "Credentials stay outside the vault and LaunchAgent plist; unavailable providers fall back to deterministic cleanup.");
 
   const routes = setSection(root, "Category routes",
     "A category tag selects the Reminders list. Add your own routes for a different setup.");
@@ -7680,6 +7695,7 @@ async function settingsReminders(plugin, root, state) {
     if (!data?.ok) { new Notice(`Reminders setup failed: ${(data?.error || out.stderr || "unknown error").slice(0, 160)}`); return; }
     await plugin.setCfg("reminders.preset", "recommended");
     await plugin.setCfg("reminders.inboxList", "Inbox");
+    await plugin.setCfg("reminders.quickWinsList", "Quick Wins");
     await plugin.setCfg("reminders.waitingList", "Waiting");
     new Notice(data.created?.length ? `Created ${data.created.join(", ")}` : "Recommended lists are ready");
   }, "primary");

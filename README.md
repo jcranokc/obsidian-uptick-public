@@ -315,8 +315,9 @@ One-time Mac setup:
    on the Mac that will run the sync. Choose **Add Shortcut** and keep its
    default name: `Uptick Apply Native Reminder Tags`.
 3. In Uptick, open **Settings → Reminders**, use **Test connection**, then
-   **Use recommended setup** if the default Inbox, Work, Personal, House, and
-   Waiting lists suit you. Existing exact-name lists are reused; missing lists
+   **Use recommended setup** if the default Inbox, Quick Wins, Waiting, Work,
+   Personal, and House lists suit you. Repeat is intentionally Apple-only.
+   Existing exact-name lists are reused; missing lists
    are created only after confirmation.
 4. Enable **two-way sync** and run a **Dry-run sync**. Review the result before
    using **Sync now**.
@@ -348,6 +349,14 @@ permission; Uptick can open the Shortcut link but cannot bypass that consent.
 If the Shortcut is absent, the bridge still runs and the log records that
 native tag application was skipped.
 
+The sync contract is bidirectional for six lists: Inbox, Quick Wins, Waiting,
+Work, Personal, and House. Deleting a linked open Reminder removes its linked
+Markdown task only after all six lists were read successfully; permission or
+partial-read failures fail closed. A private 30-day tombstone prevents
+resurrection and can be restored from **Sync activity**. Completed Markdown
+history is preserved, and tasks with manual child content are held for review.
+Repeat is never imported, edited, deleted, or native-tagged by Uptick.
+
 ### Routing and optional workflow tools
 
 Explicit category tags always win. If automatic category matching is enabled,
@@ -356,8 +365,12 @@ it uses local, editable high-confidence cues; a tie stays in Inbox with
 
 The optional Workflow Assistant adds a review queue, Waiting follow-up dates,
 reschedule history, sync activity, selected/imported Mail capture, and a weekly
-review. Cloud suggestions are off until you enable them and require approval
-before they change a task. See the
+review. New Inbox and Quick Wins reminders receive deterministic cleanup and
+high-confidence local routing. If a configured AI provider passes preflight in
+the scheduler environment and agrees with the local route, it may reword the
+title automatically; unavailable or disagreeing providers leave local
+cleanup unchanged. No due dates, assignees, commitments, or recurrence are
+invented. See the
 [Reminders workflow assistant plan](docs/reminders-workflow-assistant-plan.md).
 
 When enabled, **iMessage task capture** runs inside the same 10-minute

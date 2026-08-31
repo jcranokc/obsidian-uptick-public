@@ -19,17 +19,27 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from llm import Provider, LlmError
+except ImportError:  # pragma: no cover - standalone test harnesses
+    Provider = None  # type: ignore[assignment]
+    LlmError = RuntimeError  # type: ignore[assignment,misc]
+
 REMINDCTL = os.environ.get("REMINDCTL") or shutil.which("remindctl") or "/opt/homebrew/bin/remindctl"
 DEFAULT_CONFIG: dict[str, Any] = {
     "version": 1,
     "enabled": False,
-    "inboxList": "",
-    "waitingList": "",
+    "inboxList": "Inbox",
+    "quickWinsList": "Quick Wins",
+    "waitingList": "Waiting",
+    "excludedLists": ["Repeat"],
     "routes": [
         {"tag": "#work", "list": "Work", "listId": ""},
         {"tag": "#personal", "list": "Personal", "listId": ""},
         {"tag": "#house", "list": "House", "listId": ""},
     ],
+    "autoIntake": {"enabled": True, "aiEnabled": True, "minConfidence": "high"},
+    "maxCreatesPerRun": 50,
     "categoryInference": {
         # These are deliberately narrow, high-confidence signals. The bridge
         # never sends task text to an AI service and leaves ties in Inbox.
@@ -92,6 +102,8 @@ def descendant_ids(tasks: dict[str, dict[str, Any]], parent_id: str) -> set[str]
 
 
 def run_json(args: list[str], timeout: int = 30) -> Any:
+    # AppleScript/SQLite text can contain a NUL; never pass that byte to exec.
+    args = [str(value).replace("\x00", "") for value in args]
     try:
         p = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
         if p.returncode != 0:
@@ -99,7 +111,7 @@ def run_json(args: list[str], timeout: int = 30) -> Any:
         return json.loads(p.stdout or "null")
     except FileNotFoundError:
         return {"error": f"remindctl not found at {REMINDCTL}"}
-    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
         return {"error": str(exc)}
 
 
@@ -154,9 +166,14 @@ def validate_config(cfg: dict[str, Any]) -> list[str]:
         if tag in seen:
             errors.append(f"Duplicate managed tag: {tag}")
         seen.add(tag)
-    if cfg.get("enabled") and (not str(cfg.get("inboxList") or "").strip() or
-                                not str(cfg.get("waitingList") or "").strip()):
-        errors.append("Enabled sync needs both an Inbox list and a Waiting list.")
+    required_lists = ("inboxList", "quickWinsList", "waitingList")
+    if cfg.get("enabled") and any(not str(cfg.get(key) or "").strip() for key in required_lists):
+        errors.append("Enabled sync needs Inbox, Quick Wins, and Waiting lists.")
+    configured_names = [target["name"] for target in configured_lists(cfg)]
+    if len(configured_names) != len(set(configured_names)):
+        errors.append("Synced Reminders list names must be unique.")
+    if any(name.lower() == "repeat" for name in configured_names):
+        errors.append("Repeat is Apple-only and cannot be a synced list.")
     if cfg.get("conflictResolution") != "reminders-wins":
         errors.append("Only conflictResolution=reminders-wins is supported.")
     return list(dict.fromkeys(errors))
@@ -180,9 +197,11 @@ def load_state(vault: Path, cfg: dict[str, Any]) -> dict[str, Any]:
             workflow.setdefault("activity", [])
             workflow.setdefault("emailParents", {})
             workflow.setdefault("waiting", {})
+        value.setdefault("tombstones", {})
+        value.setdefault("links", {})
         return value
     except (OSError, json.JSONDecodeError):
-        return {"version": 1, "links": {}, "lastSyncAt": None}
+        return {"version": 1, "links": {}, "tombstones": {}, "lastSyncAt": None}
 
 
 def save_state(vault: Path, cfg: dict[str, Any], state: dict[str, Any]) -> None:
@@ -231,12 +250,12 @@ def authorization_status() -> dict[str, Any]:
 
 def configured_lists(cfg: dict[str, Any]) -> list[dict[str, str]]:
     values = []
+    for key in ("inboxList", "quickWinsList", "waitingList"):
+        if cfg.get(key):
+            values.append({"name": str(cfg[key]), "id": str(cfg.get(key + "Id") or "")})
     for route in cfg.get("routes", []):
         if isinstance(route, dict) and route.get("list"):
             values.append({"name": str(route["list"]), "id": str(route.get("listId") or "")})
-    for key in ("inboxList", "waitingList"):
-        if cfg.get(key):
-            values.append({"name": str(cfg[key]), "id": ""})
     unique: dict[str, dict[str, str]] = {v["name"]: v for v in values}
     return list(unique.values())
 
@@ -253,6 +272,35 @@ def reminders_for(cfg: dict[str, Any]) -> list[dict[str, Any]]:
         if isinstance(value, list):
             found.extend(value)
     return found
+
+
+def reminder_snapshot(cfg: dict[str, Any]) -> dict[str, Any]:
+    """Read every managed list and Repeat as a safety boundary.
+
+    Repeat is never projected or edited. It is read only so moving a linked
+    reminder into the Apple-only list cannot be mistaken for a deletion.
+    """
+    rows: list[dict[str, Any]] = []
+    excluded: list[dict[str, Any]] = []
+    failed: list[str] = []
+    for target in configured_lists(cfg):
+        args = [REMINDCTL, "list", "--json"]
+        args += (["--list-id", target["id"]] if target["id"] else [target["name"]])
+        value = run_json(args)
+        if isinstance(value, list):
+            rows.extend(value)
+        else:
+            failed.append(target["name"])
+    for name in cfg.get("excludedLists", ["Repeat"]):
+        if not str(name).strip():
+            continue
+        value = run_json([REMINDCTL, "list", "--json", str(name)])
+        if isinstance(value, list):
+            excluded.extend(value)
+        else:
+            failed.append(str(name))
+    return {"rows": rows, "excluded": excluded, "failed": failed,
+            "complete": not failed}
 
 
 def clean_title(value: str) -> str:
@@ -395,7 +443,7 @@ def projection_from_task(task: dict[str, Any], cfg: dict[str, Any], category_hin
         follow_up_tag = str(cfg["tags"].get("followUp", "#follow-up"))
         if follow_up_tag not in tags:
             tags.append(follow_up_tag)
-    due = task.get("due") or dt.date.today().isoformat()
+    due = task.get("due")
     if route["name"] == str(cfg.get("waitingList") or "Waiting") and task.get("followUpDate"):
         due = task["followUpDate"]
     title = clean_title(str(task.get("text") or "Task"))
@@ -436,13 +484,22 @@ def projection_from_reminder(reminder: dict[str, Any], cfg: dict[str, Any]) -> d
     notes = str(reminder.get("notes") or "")
     tags = tag_tokens(notes)
     list_name = str(reminder.get("listName") or "Inbox")
+    configured_route_tags = {str(route.get("tag") or "").lower() for route in cfg.get("routes", []) if isinstance(route, dict)}
+    if list_name not in {str(cfg.get("inboxList") or "Inbox"), str(cfg.get("quickWinsList") or "Quick Wins")}:
+        tags = [tag for tag in tags if tag.lower() not in configured_route_tags]
     route_tags = set()
     for route in cfg.get("routes", []):
         if isinstance(route, dict) and str(route.get("list") or "") == list_name:
             route_tag = str(route.get("tag") or "")
             tags.append(route_tag)
             route_tags.add(route_tag.lower())
-    if list_name == str(cfg.get("waitingList") or "Waiting"):
+    if list_name == str(cfg.get("quickWinsList") or "Quick Wins"):
+        quick = "#quick-win"
+        if quick not in tags:
+            tags.append(quick)
+        if str(cfg["tags"].get("duration10", "#10min")) not in tags:
+            tags.append(str(cfg["tags"].get("duration10", "#10min")))
+    elif list_name == str(cfg.get("waitingList") or "Waiting"):
         blocked = str(cfg["tags"].get("blocked", "#blocked"))
         dependency = str(cfg["tags"].get("dependency", "#dependency"))
         if blocked not in tags and dependency not in tags:
@@ -457,7 +514,7 @@ def projection_from_reminder(reminder: dict[str, Any], cfg: dict[str, Any]) -> d
     details = re.sub(r"(?<!\w)#[\w-]+", "", notes)
     if "obsidian_task_id=" in notes:
         details = ""  # legacy internal metadata is migrated out of Notes
-    due = str(reminder.get("dueDate") or "")[:10] or dt.date.today().isoformat()
+    due = str(reminder.get("dueDate") or "")[:10] or None
     tags = sorted(set(filter(None, tags)))
     duration_values = [str(cfg["tags"].get(key, "")) for key in ("duration10", "duration20", "duration30")]
     existing_durations = [tag for tag in duration_values if tag in tags]
@@ -717,6 +774,160 @@ def run_message_task_capture(vault: Path, dry_run: bool) -> dict[str, Any]:
     return value
 
 
+def prune_tombstones(state: dict[str, Any]) -> None:
+    cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=30)
+    tombstones = state.setdefault("tombstones", {})
+    for task_id, record in list(tombstones.items()):
+        try:
+            stamp = dt.datetime.fromisoformat(str(record.get("deletedAt", "")).replace("Z", "+00:00"))
+        except (TypeError, ValueError, AttributeError):
+            stamp = cutoff
+        if stamp < cutoff:
+            tombstones.pop(task_id, None)
+
+
+def deletion_candidates(tasks: dict[str, dict[str, Any]], links: dict[str, Any],
+                        reminders: dict[str, Any], excluded_ids: set[str],
+                        snapshot_complete: bool) -> list[str]:
+    if not snapshot_complete:
+        return []
+    result: list[str] = []
+    for task_id, link in links.items():
+        rid = str(link.get("reminderId") or "") if isinstance(link, dict) else ""
+        if not rid or rid in reminders or rid in excluded_ids or task_id not in tasks:
+            continue
+        result.append(task_id)
+    return result
+
+
+def remove_deleted_tasks(lines: list[str], tasks: dict[str, dict[str, Any]], links: dict[str, Any],
+                         candidates: list[str], state: dict[str, Any], dry_run: bool) -> tuple[set[str], list[str]]:
+    """Remove only bridge-owned open tasks; hold manual hierarchies for review."""
+    removed: set[str] = set()
+    held: list[str] = []
+    indexes: set[int] = set()
+    for task_id in candidates:
+        task = tasks.get(task_id)
+        if not task:
+            continue
+        descendants = descendant_ids(tasks, task_id)
+        manual_children = [child for child in descendants
+                           if not links.get(child, {}).get("reminderId")
+                           or links.get(child, {}).get("origin", "markdown") == "markdown"]
+        if manual_children:
+            held.append(task_id)
+            activity(state, "reminder-deletion-review", task=task_id, reason="manual child content")
+            continue
+        ids = {task_id} | descendants
+        for ident in ids:
+            candidate = tasks.get(ident)
+            if not candidate:
+                continue
+            if candidate.get("completed"):
+                # Completed Markdown history remains, but the link is tombstoned
+                # so the missing native item is never recreated.
+                removed.add(ident)
+                continue
+            indexes.add(int(candidate["lineIndex"]))
+            link = links.get(ident, {})
+            details_idx = int(candidate["lineIndex"]) + 1
+            if link.get("detailsManaged") and details_idx < len(lines) and re.match(r"^\s{2,}(?:[-*]\s+)?Details:", lines[details_idx], re.I):
+                indexes.add(details_idx)
+            removed.add(ident)
+        activity(state, "reminder-deleted", task=task_id, reminderId=links.get(task_id, {}).get("reminderId"),
+                 preserved=bool(task.get("completed")))
+    if not dry_run:
+        for index in sorted(indexes, reverse=True):
+            if index < len(lines):
+                lines.pop(index)
+    for task_id in removed:
+        link = links.pop(task_id, {})
+        rid = str(link.get("reminderId") or "")
+        state.setdefault("tombstones", {})[task_id] = {
+            "taskId": task_id, "reminderId": rid, "deletedAt": now(),
+            "expiresAt": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=30)).isoformat().replace("+00:00", "Z"),
+            "list": link.get("projection", {}).get("list"), "restorable": True,
+            "preserveTask": bool(tasks.get(task_id, {}).get("completed")),
+            "projection": link.get("projection", {}),
+        }
+    return removed, held
+
+
+def incoming_intake(projection: dict[str, Any], cfg: dict[str, Any], vault: Path | None = None,
+                    state: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Deterministic, explainable intake cleanup; model rewording is optional."""
+    if projection.get("list") not in {str(cfg.get("inboxList") or "Inbox"), str(cfg.get("quickWinsList") or "Quick Wins")}:
+        return projection
+    text = f"{projection.get('title', '')} {projection.get('details', '')}"
+    task = {"raw": text, "text": projection.get("title", ""), "details": projection.get("details", "")}
+    inferred = inferred_route_tag(task, cfg, tag_tokens(text))
+    if inferred:
+        for route in cfg.get("routes", []):
+            if isinstance(route, dict) and str(route.get("tag", "")).lower() == inferred.lower():
+                projection["list"] = str(route.get("list") or projection["list"])
+                projection["tags"] = sorted(set(projection.get("tags", [])) | {inferred})
+                break
+    if projection.get("list") == str(cfg.get("quickWinsList") or "Quick Wins"):
+        projection["tags"] = sorted(set(projection.get("tags", [])) | {"#quick-win", str(cfg["tags"].get("duration10", "#10min"))})
+    if projection.get("list") == str(cfg.get("inboxList") or "Inbox") and not inferred:
+        projection["tags"] = sorted(set(projection.get("tags", [])) | {str(cfg["tags"].get("needsTriage", "#needs-triage"))})
+    auto = cfg.get("autoIntake") if isinstance(cfg.get("autoIntake"), dict) else {}
+    if inferred and auto.get("enabled", True) and auto.get("aiEnabled", True) and vault and Provider:
+        provider = Provider.load(vault)
+        ready, _ = provider.preflight()
+        if ready:
+            prompt = json.dumps({"title": projection.get("title", ""), "details": projection.get("details", ""),
+                                 "category": inferred, "instruction": "Return JSON with concise action title only; do not add dates or commitments."})
+            try:
+                raw = provider.complete(prompt, system="You clean task wording. Return only JSON: {\"title\": string}.", max_tokens=120)
+                match = re.search(r"\{.*\}", raw, re.S)
+                candidate = json.loads(match.group(0)) if match else {}
+                title = clean_title(str(candidate.get("title") or ""))
+                if title and len(title) <= 160 and not any(x in title.lower() for x in ("today", "tomorrow", "assign", "remind me")):
+                    projection["title"] = title
+                    if state is not None:
+                        activity(state, "reminder-reworded", source="configured-provider", category=inferred)
+            except (LlmError, OSError, json.JSONDecodeError, AttributeError, TypeError):
+                if state is not None:
+                    activity(state, "reminder-reword-skipped", source="configured-provider", reason="provider unavailable or invalid response")
+    return projection
+
+
+def restore_deletion(vault: Path, cfg: dict[str, Any], task_id: str, dry_run: bool) -> dict[str, Any]:
+    state = load_state(vault, cfg)
+    record = state.get("tombstones", {}).get(task_id)
+    if not isinstance(record, dict) or not record.get("restorable"):
+        return {"ok": False, "error": "No restorable deletion found for that task."}
+    projection = dict(record.get("projection") or {})
+    if not projection:
+        return {"ok": False, "error": "Deletion record has no task projection."}
+    created = add_reminder(projection, dry_run)
+    if dry_run:
+        return {"ok": True, "dryRun": True, "task": task_id}
+    if not created:
+        return {"ok": False, "error": "Could not recreate the Reminder."}
+    data_path = vault / ".obsidian/plugins/life-os/data.json"
+    try:
+        raw = json.loads(data_path.read_text(encoding="utf-8"))
+        task_path = Path(raw.get("config", {}).get("paths", {}).get("taskInbox", "2 Work/Tasks/Task Inbox.md"))
+    except (OSError, json.JSONDecodeError):
+        task_path = Path("2 Work/Tasks/Task Inbox.md")
+    task_file = task_path if task_path.is_absolute() else vault / task_path
+    text = task_file.read_text(encoding="utf-8") if task_file.exists() else "# Task Inbox\n"
+    lines = text.splitlines()
+    lines.append(render_task(task_id, projection))
+    if projection.get("details"):
+        lines.append(f"  Details: {projection['details']}")
+    task_file.parent.mkdir(parents=True, exist_ok=True)
+    task_file.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    state.setdefault("links", {})[task_id] = {"reminderId": created["id"], "projection": projection,
+                                               "origin": "reminder", "detailsManaged": bool(projection.get("details")), "lastSyncAt": now()}
+    state["tombstones"].pop(task_id, None)
+    activity(state, "reminder-restored", task=task_id, reminderId=created["id"])
+    save_state(vault, cfg, state)
+    return {"ok": True, "restored": task_id, "reminderId": created["id"]}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--vault", required=True)
@@ -725,6 +936,8 @@ def main() -> int:
     parser.add_argument("--sync", action="store_true")
     parser.add_argument("--migrate-legacy", action="store_true",
                         help="clean and link existing legacy reminders without creating new ones")
+    parser.add_argument("--restore-deletion", metavar="TASK_ID",
+                        help="restore a private 30-day deletion tombstone")
     parser.add_argument("--dry-run", action="store_true")
     ns = parser.parse_args()
     vault = Path(ns.vault).expanduser().resolve()
@@ -747,7 +960,7 @@ def main() -> int:
                               "error": permission.get("error") or "Reminders permission is not granted"}))
             return 2
         existing = {str(item.get("name") or item.get("title") or ""): item for item in list_records() if isinstance(item, dict)}
-        names = ["Inbox", "Work", "Personal", "House", "Waiting"]
+        names = ["Inbox", "Quick Wins", "Waiting", "Work", "Personal", "House"]
         created: list[str] = []
         lists: dict[str, dict[str, Any]] = {}
         for name in names:
@@ -758,6 +971,9 @@ def main() -> int:
                     created.append(name)
             lists[name] = match if isinstance(match, dict) else {"name": name}
         print(json.dumps({"ok": True, "created": created, "lists": lists, "dryRun": ns.dry_run}))
+        return 0
+    if ns.restore_deletion:
+        print(json.dumps(restore_deletion(vault, cfg, ns.restore_deletion, ns.dry_run)))
         return 0
     if not ns.sync and not ns.migrate_legacy:
         print(json.dumps({"ok": False, "error": "choose --status, --setup-recommended, --sync, or --migrate-legacy"}))
@@ -788,7 +1004,22 @@ def main() -> int:
     prepare_waiting_metadata(tasks, cfg)
     category_hints = peer_category_hints(tasks, cfg)
     state = load_state(vault, cfg)
-    reminder_rows = reminders_for(cfg)
+    prune_tombstones(state)
+    snapshot = reminder_snapshot(cfg)
+    if not snapshot["complete"]:
+        # A missing/failed list must never look like an empty source. Refuse
+        # all reconciliation writes until the six-list read is healthy.
+        print(json.dumps({"ok": True, "skipped": True, "reason": "authoritative list read incomplete",
+                          "failedLists": snapshot["failed"], "dryRun": ns.dry_run,
+                          "messageTaskCapture": message_task_capture, "emailCompletion": email_completion}))
+        return 0
+    reminder_rows = snapshot["rows"]
+    list_ids = state.setdefault("listIds", {})
+    for row in reminder_rows:
+        name, list_id = str(row.get("listName") or ""), str(row.get("listID") or row.get("listId") or "")
+        if name and list_id:
+            list_ids[name] = list_id
+    excluded_ids = {str(r.get("id")) for r in snapshot["excluded"] if r.get("id")}
     flags = reminder_flags([str(reminder.get("id")) for reminder in reminder_rows if reminder.get("id")])
     for reminder in reminder_rows:
         reminder_id = str(reminder.get("id") or "")
@@ -800,6 +1031,18 @@ def main() -> int:
                "moved": 0, "conflicts": 0, "skipped": 0, "errors": 0}
     flag_updates: dict[str, bool] = {}
     forced_completed: set[str] = set()
+    try:
+        create_limit = max(0, int(cfg.get("maxCreatesPerRun", 50)))
+    except (TypeError, ValueError):
+        create_limit = 50
+
+    # A missing ID is a deletion only after every managed list read succeeded.
+    # Repeat IDs are explicitly excluded and therefore preserve their links.
+    deleted_ids, held_deletions = remove_deleted_tasks(
+        lines, tasks, links, deletion_candidates(tasks, links, reminders, excluded_ids, snapshot["complete"]), state, ns.dry_run
+    )
+    changed["deleted"] = len(deleted_ids)
+    changed["deletionReview"] = len(held_deletions)
 
     edits: list[tuple[int, int, list[str]]] = []
     # Adopt legacy reminders by their old task ID before importing anything.
@@ -824,6 +1067,8 @@ def main() -> int:
     # retry from duplicating those live reminders.
     claimed = {str(link.get("reminderId")) for link in links.values() if link.get("reminderId")}
     for task_id, task in tasks.items():
+        if task_id in deleted_ids:
+            continue
         if (task_id in links and links[task_id].get("reminderId")) or task.get("completed"):
             continue
         projection = projection_from_task(task, cfg, category_hints.get(str(task.get("text") or "").lower(), ""))
@@ -850,6 +1095,9 @@ def main() -> int:
                 continue
             if ns.migrate_legacy:
                 continue
+            if changed["created"] >= create_limit:
+                changed["skipped"] += 1
+                continue
             parent_link = links.get(str(task.get("parentId") or ""), {})
             parent_id = str(parent_link.get("reminderId") or "")
             created = add_child_reminder(parent_id, projection, ns.dry_run) if parent_id else None
@@ -857,16 +1105,18 @@ def main() -> int:
                 created = add_reminder(projection, ns.dry_run)
             if created:
                 link["reminderId"] = created["id"]
+                link["origin"] = "markdown"
+                link["detailsManaged"] = False
                 reminder = created
                 reminders[str(created["id"])] = created
                 changed["created"] += 1
             elif ns.dry_run:
                 # Keep dry-run output useful without inventing a Reminders ID.
                 changed["created"] += 1
-                links[task_id] = {"reminderId": None, "projection": projection, "lastSyncAt": now()}
+                links[task_id] = {"reminderId": None, "projection": projection, "origin": "markdown", "detailsManaged": False, "lastSyncAt": now()}
                 continue
             else:
-                links[task_id] = {"reminderId": None, "projection": projection, "lastSyncAt": now()}
+                links[task_id] = {"reminderId": None, "projection": projection, "origin": "markdown", "detailsManaged": False, "lastSyncAt": now()}
                 continue
         if not reminder:
             continue
@@ -1014,7 +1264,14 @@ def main() -> int:
             lines.extend(line.splitlines())
             if projection["details"]:
                 lines.append(f"  Details: {projection['details']}")
-        links[rid] = {"reminderId": reminder_id, "projection": projection, "lastSyncAt": now()}
+        if reminder_id in {str(record.get("reminderId")) for record in state.get("tombstones", {}).values() if isinstance(record, dict)}:
+            changed["skipped"] += 1
+            continue
+        projection = incoming_intake(projection, cfg, vault, state)
+        if projection != projection_from_reminder(reminder, cfg):
+            edit_reminder(reminder_id, projection, ns.dry_run)
+        links[rid] = {"reminderId": reminder_id, "projection": projection,
+                      "origin": "reminder", "detailsManaged": bool(projection.get("details")), "lastSyncAt": now()}
         changed["imported"] += 1
 
     if not ns.dry_run:

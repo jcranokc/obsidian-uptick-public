@@ -70,6 +70,11 @@ check("exact-title sibling inherits one unambiguous category",
 parsed = mod.parse_tasks("- [ ] Work task #work ^task-work\n")
 check("raw category tag routes task", mod.projection_from_task(parsed["task-work"], cfg)["list"] == "Work")
 check("valid configuration has no errors", mod.validate_config({**cfg, "enabled": True}) == [])
+check("configured lists include six synced lists and exclude Repeat",
+      [x["name"] for x in mod.configured_lists(cfg)] == ["Inbox", "Quick Wins", "Waiting", "Work", "Personal", "House"]
+      and "Repeat" not in [x["name"] for x in mod.configured_lists(cfg)])
+check("Repeat is rejected when configured as a synced list",
+      bool(mod.validate_config({**cfg, "quickWinsList": "Repeat", "enabled": True})))
 check("duplicate managed tags are rejected", bool(mod.validate_config({**cfg, "tags": {**cfg["tags"], "duration20": "#10min"}})))
 
 task = {"text": "Review release #work #10min #20min", "details": "Confirm checklist",
@@ -89,6 +94,10 @@ remote = mod.projection_from_reminder(reminder, cfg)
 check("reminder list becomes category", "#house" in remote["tags"])
 check("reminder tags are not duplicated in details", remote["details"] == "Pick up filters")
 check("reminder date is normalized", remote["due"] == "2026-09-02")
+no_due = mod.projection_from_reminder({"id": "r-2", "title": "No date", "listName": "Inbox", "notes": ""}, cfg)
+check("missing reminder date stays missing", no_due["due"] is None and no_due["reminderDue"] is None)
+quick = mod.projection_from_reminder({"id": "r-3", "title": "Quick item", "listName": "Quick Wins", "notes": ""}, cfg)
+check("Quick Wins gets quick-win and ten-minute tags", "#quick-win" in quick["tags"] and "#10min" in quick["tags"])
 
 mail_cfg = mod.merge(cfg, {"mail": {"enabled": True}})
 mail_task = {**task, "url": "message://%3CExample|Inbox|1%3E"}
@@ -116,6 +125,20 @@ tree = mod.parse_tasks(
 )
 check("parent completion reaches nested descendants",
       mod.descendant_ids(tree, "task-parent") == {"task-child", "task-grandchild"})
+
+state = {"links": {"task-a": {"reminderId": "gone", "origin": "reminder", "detailsManaged": True,
+                                "projection": {"title": "Deleted", "list": "Inbox"}}}, "tombstones": {}}
+task_tree = mod.parse_tasks("- [ ] Deleted ^task-a\n  Details: bridge detail\n")
+lines = "- [ ] Deleted ^task-a\n  Details: bridge detail\n".splitlines()
+removed, held = mod.remove_deleted_tasks(lines, task_tree, state["links"], ["task-a"], state, False)
+check("confirmed deletion removes open task and bridge details", removed == {"task-a"} and lines == [] and "task-a" in state["tombstones"] and not held)
+check("deletion tombstone is restorable for 30 days", state["tombstones"]["task-a"].get("restorable") is True)
+manual_state = {"links": {"task-parent": {"reminderId": "gone", "origin": "reminder"}}, "tombstones": {}}
+manual_tree = mod.parse_tasks("- [ ] Parent ^task-parent\n  - [ ] Manual child ^task-manual\n")
+manual_lines = "- [ ] Parent ^task-parent\n  - [ ] Manual child ^task-manual\n".splitlines()
+_, held_manual = mod.remove_deleted_tasks(manual_lines, manual_tree, manual_state["links"], ["task-parent"], manual_state, False)
+check("manual child content is held for review", held_manual == ["task-parent"] and manual_lines)
+check("failed authoritative reads block deletion", mod.deletion_candidates(task_tree, state["links"], {}, set(), False) == [])
 
 if fails:
     raise SystemExit(f"{len(fails)} reminders projection checks failed")

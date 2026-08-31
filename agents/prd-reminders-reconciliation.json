@@ -1,31 +1,32 @@
 {
   "project": "Uptick",
   "branchName": "ralph/reminders-reconciliation",
-  "description": "Make Apple Reminders a trustworthy bidirectional intake: propagate deliberate Apple-side deletion to the linked canonical Markdown task, normalize new reminders from the configured seven-list workflow, optionally improve wording through a reviewable cleanup flow, and verify the ten-minute macOS bridge is installed and healthy.",
+  "description": "Make Apple Reminders a trustworthy bidirectional intake: propagate deliberate Apple-side deletion to the linked canonical Markdown task, normalize new reminders from six synced lists, keep Repeat Apple-only, safely automate high-confidence intake cleanup, and verify the ten-minute macOS bridge is installed and healthy.",
   "decisions": {
     "canonicalTaskStore": "A linked Apple Reminder may create, update, complete, reopen, move, or deliberately delete its canonical Markdown task. Unlinked Markdown tasks remain untouched by Apple-side deletion.",
-    "configuredReminderLists": ["Inbox", "Quick Wins", "Waiting", "Work", "Personal", "House", "Repeat"],
-    "routing": "The list selected in Apple Reminders is authoritative by default. Inbox items may receive a local or reviewable routing recommendation; they are moved only under an explicit auto-route setting or an approved review action.",
-    "cleanup": "Deterministic cleanup runs automatically. Semantic rewording is an explainable preview that needs user approval unless a later explicit setting authorizes automatic rewording.",
+    "configuredReminderLists": ["Inbox", "Quick Wins", "Waiting", "Work", "Personal", "House"],
+    "excludedReminderLists": ["Repeat"],
+    "routing": "The selected list is authoritative for Work, Personal, House, and Waiting. New Inbox and Quick Wins items are locally routed only when confidence is high; ties remain Inbox with #needs-triage.",
+    "cleanup": "Deterministic cleanup runs automatically. When a configured provider passes LaunchAgent preflight, it may reword only after agreeing with the local high-confidence route and returning a concise valid action.",
     "safety": "A missing Reminder becomes a deletion signal only after a successful authoritative read of its configured list. Permission failures, unavailable lists, and partial reads must fail closed and never delete Markdown tasks.",
     "privateState": "Reminder IDs, tombstones, audit history, list IDs, Mac paths, and model credentials remain local and ignored. The public repository contains no personal task content or runtime state."
   },
   "userStories": [
     {
       "id": "US-001",
-      "title": "Configure the seven-list Reminders workflow",
-      "description": "As an Uptick user, I want Inbox, Quick Wins, Waiting, Work, Personal, House, and Repeat to be explicit configurable Apple Reminders sources so that a reminder created in any of my working lists is imported predictably.",
+      "title": "Configure the six-list Reminders workflow",
+      "description": "As an Uptick user, I want Inbox, Quick Wins, Waiting, Work, Personal, and House to be explicit synced Apple Reminders sources while Repeat remains Apple-only.",
       "acceptanceCriteria": [
-        "Expose configurable names and private IDs for Inbox, Quick Wins, Waiting, Work, Personal, House, and Repeat; migrate existing Work, Personal, House, Waiting, and Inbox settings without overwriting user changes.",
+        "Expose configurable names and private IDs for Inbox, Quick Wins, Waiting, Work, Personal, and House; migrate existing Work, Personal, House, Waiting, and Inbox settings without overwriting user changes.",
         "Read and import only the configured lists. A reminder in an unconfigured Apple list is ignored and produces no task, move, or deletion.",
-        "Map the selected list to canonical metadata: Inbox -> #needs-triage, Quick Wins -> #quick-win and the configured quick-win duration, Waiting -> #blocked and #follow-up, Work -> #work, Personal -> #personal, House -> #house, and Repeat -> #repeat plus supported recurrence metadata.",
+        "Map the selected list to canonical metadata: Inbox -> #needs-triage, Quick Wins -> #quick-win and #10min, Waiting -> #blocked and #follow-up, Work -> #work, Personal -> #personal, and House -> #house. Repeat is not read for projection or native tags.",
         "Keep list identifiers, settings, and per-item links in ignored local state; public defaults contain names only and no account identifiers.",
         "Typecheck passes"
       ],
       "priority": 1,
       "passes": false,
-      "fixtureCoverage": ["seven-list settings migration", "configured-list enumeration", "unconfigured-list exclusion", "private-ID boundary"],
-      "notes": "Repeat recurrence is mirrored only when remindctl exposes a stable recurrence payload; otherwise the UI reports recurrence as unsupported rather than inventing repeat behavior."
+      "fixtureCoverage": ["six-list settings migration", "configured-list enumeration", "unconfigured-list exclusion", "Repeat exclusion", "private-ID boundary"],
+      "notes": "Repeat is read only as a safety boundary so a linked item moved there is not mistaken for deletion; it is never imported, edited, tagged, or deletion-reconciled."
     },
     {
       "id": "US-002",
@@ -53,7 +54,7 @@
         "Run deterministic cleanup: remove transport syntax, duplicate tags, Obsidian block IDs, formatting artifacts, and redundant whitespace; place substantive Reminder notes in a Details line.",
         "Do not invent a due date when Apple supplied none. Apply only configured default tags such as duration and status, with clear source attribution in the private activity record.",
         "Write the normalized title, canonical tags, and configured list back to the linked Reminder only after successful import; then invoke the native-tag Shortcut after the bridge succeeds.",
-        "Use list selection as the default route. Inbox and Quick Wins may receive a recommendation, but ambiguous input remains in Inbox with #needs-triage rather than silently moving it.",
+        "Use list selection as the default route. High-confidence Inbox and Quick Wins items may move automatically; ambiguous input remains in Inbox with #needs-triage rather than silently moving it.",
         "Typecheck passes"
       ],
       "priority": 3,
@@ -69,14 +70,14 @@
         "Generate an explainable cleanup/reword proposal that distinguishes deterministic formatting changes from semantic wording changes.",
         "Use local rules first. Optional model assistance is off until explicitly configured, uses the existing provider privacy disclosure, and sends only the task fields required for the proposal.",
         "Allow approve, edit, reject, and defer actions. Approval may update the linked Markdown task and its Reminder title/list/tags in the same reconciliation cycle.",
-        "Support an explicit auto-route setting for high-confidence Inbox and Quick Wins recommendations. Without it, no semantic move occurs automatically; ties, low confidence, and unsupported Repeat recurrence stay visible for review.",
+        "High-confidence local routes may move automatically. Semantic rewording is automatic only when the configured model agrees with the local route and returns a valid concise action; unavailable or disagreeing models leave deterministic wording unchanged.",
         "Keep the original incoming wording in private activity history long enough to explain a proposal, never in public source or public logs.",
         "Typecheck passes"
       ],
       "priority": 4,
       "passes": false,
       "fixtureCoverage": ["deterministic cleanup", "approved rewording", "rejected rewording", "local high-confidence route", "tie remains Inbox", "optional-provider disclosure"],
-      "notes": "No default automatic semantic rewording: an understandable task is valuable only if the commitment's meaning is preserved."
+      "notes": "No model call occurs without provider preflight. Local cleanup and routing remain safe fallbacks."
     },
     {
       "id": "US-005",
@@ -101,7 +102,7 @@
       "acceptanceCriteria": [
         "After implementation verification, run the explicit installer against the intended vault and install or upgrade only Uptick-owned companion files and the com.uptick.reminders-sync user LaunchAgent.",
         "Verify launchctl shows the agent bootstrapped for the current GUI user, its plist has a 600-second StartInterval and RunAtLoad, and kickstart completes without error.",
-        "Verify remindctl authorization, the seven configured lists, the installed native-tag Shortcut name, writable local log/state paths, and a successful dry-run before enabling normal sync.",
+        "Verify remindctl authorization, the six configured lists, Repeat exclusion, the installed native-tag Shortcut name, writable local log/state paths, and a successful dry-run before enabling normal sync.",
         "Run one controlled live reconciliation with a non-sensitive fixture or approved test item, then verify the activity record and log show bridge success followed by native-tag processing.",
         "Surface fresh, stale, disabled, and failed status in Uptick; document safe repair, upgrade, and uninstall behavior without deleting user tasks, reminders, state, or the Shortcut.",
         "Typecheck passes"
@@ -116,7 +117,7 @@
       "title": "Document and test the bidirectional contract",
       "description": "As an Uptick user, I want clear documentation and regression coverage so I know exactly what creating, moving, completing, deleting, rewording, and scheduling do.",
       "acceptanceCriteria": [
-        "Update the README and guided walkthrough with the seven-list table, deletion behavior, cleanup/reword review boundary, list authority, supported Repeat behavior, and 10-minute LaunchAgent verification steps.",
+        "Update the README and guided walkthrough with the six-list table, deletion behavior, cleanup/reword automation boundary, list authority, Repeat exclusion, and 10-minute LaunchAgent verification steps.",
         "Add end-to-end fixtures for create, edit, move, complete, delete, tombstone, restore, conflict, disabled module, unavailable list, stale integration, and absent native Shortcut states.",
         "Run Reminders, workflow-assistant, renderer, structure, clean-install, public-release-boundary, release-audit, Python syntax, JavaScript syntax, and macOS smoke checks.",
         "Confirm no private task text, list IDs, account values, local vault paths, or live state enter tracked files, tests, release assets, or public logs.",
@@ -124,7 +125,7 @@
       ],
       "priority": 7,
       "passes": false,
-      "fixtureCoverage": ["documentation command/link integrity", "seven-list public-safe fixture", "privacy regression", "full sync lifecycle"],
+      "fixtureCoverage": ["documentation command/link integrity", "six-list public-safe fixture", "Repeat exclusion", "privacy regression", "full sync lifecycle"],
       "notes": "Release packaging remains limited to documented public plugin assets; macOS helpers remain source-tree companions."
     }
   ]
