@@ -194,19 +194,52 @@ These integrations are intentionally **off by default**. Review each script,
 use a status or dry-run mode first where available, and set `VAULT` to the
 absolute path of the intended vault. They are not necessary for core planning.
 
-| Integration | Additional requirement | What it does | First safe check |
+| Integration | Benefit | You install or configure | What becomes automatic after setup |
 | --- | --- | --- | --- |
-| **Apple Reminders** | macOS, [`remindctl`](https://github.com/steipete/remindctl), and Reminders permission | Optional two-way projection between canonical Markdown tasks and selected Reminders lists. | `python3 optional/reminders-sync.py --vault "$VAULT" --status` |
-| **Apple Calendar** | macOS and Calendar automation permission | Reads a local Calendar cache for dashboard context; writes require a private configured target ID. | `VAULT="$VAULT" python3 optional/calendar-export.py` |
-| **Apple Mail** | macOS, Python 3.9+, Mail automation permission; optional model configuration for triage | Imports mail references and can create tasks from explicit workflow rules. | `VAULT="$VAULT" python3 optional/mail-triage.py --hours 24 --dry-run` |
-| **Messages** | macOS, Python 3.9+, and Full Disk Access | Imports a local read-only Messages catalogue. Task capture remains disabled until explicitly enabled. | `VAULT="$VAULT" python3 optional/messages-import.py --days 7 --dry-run` |
-| **Granola** | A locally configured Granola export/MCP workflow and, for AI extraction, model configuration | Imports meeting material and can create tasks only for explicit commitments. | Review `optional/granola-sync.sh` before running it. |
-| **Photos** | macOS and Photos automation permission | Exports a downscaled local photo-gallery cache for the rotating photo card. | Review `optional/photo-gallery-sync.sh` before running it. |
-| **Scheduled jobs** | macOS desktop plus jobs you configured yourself | Displays and optionally re-runs your own jobs; Uptick does not install a scheduler. | Leave the module off until jobs already work outside Obsidian. |
+| **Apple Reminders** | Keeps canonical Markdown tasks and chosen Reminders lists aligned, including priority, dates, status, duration, flags, and native tags. | macOS, [`remindctl`](https://github.com/steipete/remindctl), Reminders permission, the native-tag Shortcut, and the one-command scheduler below. | The bridge runs every 10 minutes even when Obsidian is closed; message capture and sent-mail completion can run inside it. |
+| **Apple Mail** | Brings important actionable mail into the vault without importing the whole inbox. | macOS Mail permission, Python 3.9+, the companion files, and optionally an AI provider for triage. Enable **Scheduled job control** under Modules. | Uptick imports once when desktop Obsidian opens; **Import today's mail** is always available for a deliberate extra run. |
+| **Messages** | Preserves a local read-only message catalogue and optionally turns clear incoming requests into canonical tasks. | macOS, Full Disk Access, Python 3.9+, and explicit **iMessage task capture** enablement in Reminders settings. | Task capture runs inside each configured Reminders sync; it is otherwise inactive. |
+| **Granola** | Turns configured meeting imports into curated notes and only explicit commitments into tasks. | A working Codex CLI, authenticated Granola MCP/export access, and a review of `granola-sync.sh`. | Nothing by default. You may schedule the idempotent script after its first successful manual run; it limits remote checks to once per 10 minutes. |
+| **Apple Calendar** | Gives Home and Today realistic meeting/time context from a local cache. | macOS Calendar permission and `calendar-export.py`; writes also need private target IDs. | Nothing by default. Schedule cache refresh only after verifying the read-only export. |
+| **Photos** | Rotates a small local photo cache without putting full-resolution originals into the vault. | macOS Photos permission, ordinary local albums, and configured album names. | Nothing by default. Schedule only after the first export succeeds. |
+| **Weather** | Adds current local weather to Home and daily notes. | Visual Crossing key and location. | Nothing by default; use **Fetch the weather** or schedule the cache job. |
+| **Library** | Lets you browse and install shared study decks. | Enable the Library module. | Downloads only when you browse/choose a deck; never uploads. |
 
-For the full local sync sequence, inspect `optional/vault-sync.sh`. It
-orchestrates only tools you choose to configure; it is not part of normal
-installation.
+The existing `optional/vault-sync.sh` can orchestrate Calendar, Mail, meeting
+template, Photos, and weather helpers after you intentionally place and
+configure those companions in `4 System/Automation`. It is not enabled or
+scheduled by a normal install, because those sources have separate permissions
+and data-access decisions.
+
+### Calendar, Messages, Granola, Photos, and weather
+
+Each companion has a deliberately small boundary:
+
+- **Calendar:** Run `calendar-export.py` after granting Calendar permission.
+  It writes a local cache that Home and Today read. Event creation is disabled
+  until you add a private `UPTICK_CALENDAR_ID`; a read-only export never needs
+  that ID.
+- **Messages catalogue:** Run `messages-import.py --dry-run` first, then a
+  bounded import. This is separate from iMessage task capture and is useful for
+  local search/recall. It needs Full Disk Access because the macOS Messages
+  database is protected.
+- **Granola:** Put `granola-sync.sh` in the automation folder, confirm
+  `codex` is available on your PATH and its Granola MCP access is already
+  authenticated, then run it once manually. The script records a checkpoint
+  and deduplicates by Granola meeting ID, so scheduling it later does not
+  backfill or duplicate prior imports.
+- **Photos:** Configure `ALBUMS`, `PHOTO_PER_ALBUM`, and `PHOTO_MAX_PX`
+  as needed, then run `photo-gallery-sync.sh`. It reads Photos, produces
+  downscaled JPEGs in the vault, and leaves the Photos library unchanged.
+- **Weather:** Use the built-in **Uptick: Fetch the weather** command after
+  setting the Visual Crossing key and location. It is the fastest supported
+  path; schedule `weather-fetch.py` only if you need a cache refresh while
+  Obsidian is closed.
+
+For any of these helpers, first copy the required source files to
+`YourVault/4 System/Automation/` or run them from the source checkout with
+`VAULT` set. Do not schedule a helper until its manual run has succeeded and
+its requested macOS permission matches the data you intend it to access.
 
 ### Mail triage
 
@@ -261,69 +294,82 @@ VAULT="/absolute/path/to/your/vault" python3 optional/llm.py
 
 ### Apple Reminders (optional, macOS)
 
-The workflow assistant extension is described in the
+Uptick can mirror the configured canonical task inbox and selected Apple
+Reminders lists in both directions. The Markdown task remains canonical; the
+bridge is the projection that gives you native notifications, widgets, and
+mobile access without creating another independent backlog.
+
+### Native Apple Reminders tags
+
+The bridge handles portable fields such as title, due date, list, priority,
+status, duration, completion, and flags. Apple's native tag metadata needs one
+additional Shortcuts pass. **Uptick Apply Native Reminder Tags** runs after a
+successful bridge so the tags are available to Apple's own tag filters and
+smart lists.
+
+One-time Mac setup:
+
+1. Install [`remindctl`](https://github.com/steipete/remindctl), then grant
+   it access to Reminders when macOS asks.
+2. Open this [shared Shortcut](https://www.icloud.com/shortcuts/5a4692ef11c14845a29920ea42e7e953)
+   on the Mac that will run the sync. Choose **Add Shortcut** and keep its
+   default name: `Uptick Apply Native Reminder Tags`.
+3. In Uptick, open **Settings → Reminders**, use **Test connection**, then
+   **Use recommended setup** if the default Inbox, Work, Personal, House, and
+   Waiting lists suit you. Existing exact-name lists are reused; missing lists
+   are created only after confirmation.
+4. Enable **two-way sync** and run a **Dry-run sync**. Review the result before
+   using **Sync now**.
+5. From the public source checkout, install the local scheduler:
+
+   ```bash
+   VAULT="/absolute/path/to/your/vault"
+   zsh optional/install-uptick-reminders-sync.sh --vault "$VAULT" --install
+   ```
+
+The installer copies only its Reminders companions into
+`4 System/Automation`, registers `com.uptick.reminders-sync` as a user
+LaunchAgent, and starts it every 600 seconds. Each run performs:
+
+```text
+canonical Markdown task inbox → Reminders bridge → native-tag Shortcut
+```
+
+It logs to `4 System/Logs/uptick-reminders-sync-YYYY-MM-DD.log`. It will not
+overwrite modified local companion files without `--upgrade`, and removal is
+recoverable:
+
+```bash
+zsh optional/install-uptick-reminders-sync.sh --vault "$VAULT" --uninstall
+```
+
+Apple must show and receive the user's approval for the Shortcut and Reminders
+permission; Uptick can open the Shortcut link but cannot bypass that consent.
+If the Shortcut is absent, the bridge still runs and the log records that
+native tag application was skipped.
+
+### Routing and optional workflow tools
+
+Explicit category tags always win. If automatic category matching is enabled,
+it uses local, editable high-confidence cues; a tie stays in Inbox with
+`#needs-triage`. The bridge never sends task text to AI merely to route it.
+
+The optional Workflow Assistant adds a review queue, Waiting follow-up dates,
+reschedule history, sync activity, selected/imported Mail capture, and a weekly
+review. Cloud suggestions are off until you enable them and require approval
+before they change a task. See the
 [Reminders workflow assistant plan](docs/reminders-workflow-assistant-plan.md).
 
-Uptick can optionally synchronize tasks in both directions with Apple
-Reminders. Open **Settings → Reminders** to choose your lists and tags, test
-the local macOS companion, or apply the recommended setup. The companion uses
-`remindctl`, requires Reminders permission, and is off until you enable it.
-For a manual install, include `optional/reminders-sync.py`,
-`optional/reminders-flag.applescript`, and
-`optional/open-mail-message.applescript`,
-`optional/reminders-hierarchy.applescript`,
-`optional/mail-selected-task.applescript`,
-`optional/email-task-capture.py`, and
-`optional/workflow-assistant.py`, `optional/email-completion.py`, and
-`optional/mail-sent-completions.applescript` with the plugin. Dragging an Apple
-Mail message URL into an Obsidian task lets the bridge place it in the
-Reminder URL field; clicking it opens Mail. Uptick never installs `remindctl`
-or changes macOS permissions for you.
+When enabled, **iMessage task capture** runs inside the same 10-minute
+Reminders sync. It reads new local incoming messages, filters obvious system
+noise, and creates only actionable requests in the canonical Task Inbox.
+Messages data and the capture cursor stay local. It requires Full Disk Access
+and is off by default.
 
-The recommended setup maps Work, Personal, House, Waiting, and Inbox and uses
-status tags rather than visual Reminder sections. It never publishes reminder
-content, list IDs, or Mail identifiers. See
-[`docs/reminders-sync-plan.md`](docs/reminders-sync-plan.md).
-
-For tasks that arrive without a category tag, the normal sync applies a local,
-high-confidence category match using editable route-specific cues. Explicit
-tags always win, and ambiguous tasks remain in Inbox with the configured
-needs-triage tag. The optional Workflow assistant can send only the fields
-needed for a triage suggestion to the already configured AI provider, after an
-explicit user action; it requires approval before changing a task. Configure
-both in **Settings → Reminders**.
-
-The workflow assistant also provides a triage learning queue, Waiting follow-up
-dates, a Waiting dashboard, private reschedule history, filtered/exportable sync
-activity, an approval preview for imported or selected Apple Mail messages, and
-a guided weekly review. Use **Capture task from selected Apple Mail message**
-from the command palette or open an imported email reference note first. The
-private state file is the recovery boundary: back it up before changing paths,
-and use the activity export or clear-history controls from the in-vault reports;
-no state file is part of the public checkout.
-
-The optional iMessage task capture companion reads new incoming Messages
-locally during the same sync. It filters obvious system messages, creates
-actionable requests in the canonical Task Inbox, and applies the same category,
-priority, duration, phone, status, and due-date metadata used by Reminders.
-Enable it in **Settings → Reminders → iMessage task capture**. Category tags
-route directly; unresolved categories remain in Inbox with `#needs-triage`.
-The capture cursor and message associations stay in private state, and the
-feature never requires Shortcuts.
-
-The optional sent-email completion feature runs with the existing 10-minute
-sync. It reads only new messages in Apple Mail's Sent mailbox and requires an
-explicit completion phrase such as “completed” or “done”. One uniquely linked
-task may be completed automatically; ambiguous matches appear in **Email
-Completion Review** and require approval. It is off by default, stores its
-cursor and match evidence locally, and does not require Shortcuts.
-
-For a macOS scheduled wrapper, import the bundled
-[`optional/Uptick Apply Native Reminder Tags.shortcut`](optional/Uptick%20Apply%20Native%20Reminder%20Tags.shortcut)
-into Shortcuts, then set `UPTICK_NATIVE_TAG_SHORTCUT` to its exact name. The
-wrapper runs that Shortcut only after the Reminders bridge succeeds, verifies
-that the Shortcut exists, logs its result, and leaves the setting empty by
-default for other installations.
+When enabled, **sent-email completion** also runs inside the same sync. It
+reads new Sent Mail locally and closes only one uniquely linked task that has a
+clear completion phrase; ambiguous matches remain in **Email Completion
+Review** for approval.
 
 **Your API key is never stored in the vault.** `data.json` lives in `.obsidian/`
 and syncs wherever your vault syncs — a key written there would be a key on

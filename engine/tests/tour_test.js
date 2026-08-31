@@ -135,7 +135,7 @@ console.log("\nEvery action is callable");
 
   /* A settings link that names a tab which does not exist silently lands on
    * Setup, which is the wrong page and gives no sign of being wrong. */
-  const TABS = ["Setup", "Modules", "Layout", "Panels", "Mail",
+  const TABS = ["Setup", "Modules", "Layout", "Panels", "Mail", "Reminders",
                 "Experience", "Rewards", "Paths"];
   const bad = [];
   for (const s of steps) {

@@ -7,7 +7,7 @@
 # template. Order matters — the calendar cache is what lets a Granola note be
 # matched to its invite, so it is refreshed first.
 #
-#   1. calendar-export.py       Exchange + local calendars -> calendar-cache.json
+#   1. calendar-export.py       configured local calendars -> calendar-cache.json
 #   2. email-import.py          Mail -> Email References (body, recipients, summary)
 #   3. granola-fill-template.py new Granola notes -> the meeting template
 #   4. photo-gallery-sync.sh    Apple Photos albums -> downscaled dashboard cache

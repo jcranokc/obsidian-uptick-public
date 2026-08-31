@@ -36,6 +36,8 @@ series = (OPTIONAL / "calendar-series-import.py").read_text(encoding="utf-8")
 priority = (ROOT / "engine/priority-task-sync.py").read_text(encoding="utf-8")
 wrapper = (OPTIONAL / "task-audit.sh").read_text(encoding="utf-8")
 private_config = (OPTIONAL / "uptick_private_config.py").read_text(encoding="utf-8")
+reminders_scheduler = OPTIONAL / "uptick-reminders-sync.sh"
+reminders_installer = OPTIONAL / "install-uptick-reminders-sync.sh"
 
 for key in ("UPTICK_CALENDAR_ID", "UPTICK_REMINDER_LIST_ID", "UPTICK_OWNER_PATTERN", "UPTICK_ASSIGNEE_MARKERS", "UPTICK_SERIES_RULES_FILE"):
     check(f"public helpers use {key}", key in (calendar + audit + series + priority + private_config))
@@ -50,6 +52,18 @@ check("task audit skips unconfigured Reminder writes", "if REMINDER_LIST and c[\
 check("task-audit wrapper invokes the shipped helper", '"$ROOT/task-audit.py"' in wrapper)
 check("task-audit wrapper uses generic lock naming", ".uptick-task-audit.lock" in wrapper)
 check("series rules are private configuration", "load_series_rules(VAULT)" in series)
+check("native-tag scheduler is shipped", reminders_scheduler.is_file())
+check("native-tag scheduler installer is shipped", reminders_installer.is_file())
+
+if reminders_scheduler.is_file() and reminders_installer.is_file():
+    scheduler_source = reminders_scheduler.read_text(encoding="utf-8")
+    installer_source = reminders_installer.read_text(encoding="utf-8")
+    check("native-tag scheduler runs the bridge before Shortcuts", scheduler_source.index('"$PYTHON" "$BRIDGE"') < scheduler_source.index('"$SHORTCUTS_BIN" run'))
+    check("native-tag scheduler skips a missing Shortcut safely", "native tags skipped" in scheduler_source)
+    check("installer registers a ten-minute user launch agent", "StartInterval" in installer_source and "600" in installer_source and "com.uptick.reminders-sync" in installer_source)
+    for script in (reminders_scheduler, reminders_installer, OPTIONAL / "granola-sync.sh"):
+        proc = run(["zsh", "-n", str(script)], dict(os.environ))
+        check(f"{script.name} passes zsh syntax validation", proc.returncode == 0)
 
 with tempfile.TemporaryDirectory() as tmp:
     vault = Path(tmp)

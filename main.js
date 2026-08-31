@@ -2174,6 +2174,7 @@ const QUICK = [
  * rather than implying a button will handle it. */
 
 const TOUR_VIEW = "life-os-tour";
+const NATIVE_TAG_SHORTCUT_URL = "https://www.icloud.com/shortcuts/5a4692ef11c14845a29920ea42e7e953";
 
 function tourSteps(plugin) {
   const cfg = plugin.cfg;
@@ -2367,8 +2368,9 @@ function tourSteps(plugin) {
         "The prompt is the safety mechanism: it is told to preserve human "
         + "writing, deduplicate on the meeting id, and make no changes when "
         + "nothing is new. Read it before you run it.",
-        "It uses whichever model you set on the \u201cConnecting a model\u201d "
-        + "step, the same one mail triage uses.",
+        "It uses the Codex CLI and your configured Granola MCP access. Those "
+        + "are separate from Uptick's optional AI settings, so verify the "
+        + "command can run successfully before scheduling it.",
       ],
       action: { label: "See the script", run: () => window.open(
         "https://github.com/jcranokc/obsidian-uptick-public/blob/main/optional/granola-sync.sh", "_blank") },
@@ -2383,6 +2385,27 @@ function tourSteps(plugin) {
         "Optional task capture is separate and disabled until you enable it. "
         + "Both need Full Disk Access, which is a real permission to weigh — "
         + "the importer can read messages on the machine.",
+      ],
+    },
+    {
+      chapter: "Tasks",
+      title: "Native Reminders tags (macOS)",
+      mac: true,
+      body: [
+        "The Reminders bridge keeps the portable task projection in sync. "
+        + "Apple's native tag metadata needs a Shortcuts step after that bridge "
+        + "finishes, so tags remain useful in Apple Reminders itself.",
+        "Install the shared **Uptick Apply Native Reminder Tags** Shortcut on "
+        + "your Mac, then run the one-command scheduler installer from the "
+        + "public source checkout. It runs the bridge first and the Shortcut "
+        + "second every ten minutes, even while Obsidian is closed.",
+        "Apple shows the Shortcut installation prompt and Reminders permission "
+        + "request itself. Uptick can open the link and verify the local setup, "
+        + "but it cannot accept those permissions for you.",
+      ],
+      actions: [
+        { label: "Install the tag Shortcut", run: () => window.open(NATIVE_TAG_SHORTCUT_URL, "_blank") },
+        { label: "Open Reminders settings", run: () => plugin.openSettings("Reminders") },
       ],
     },
 
@@ -2537,8 +2560,9 @@ function tourSteps(plugin) {
         "The Library is an index of decks other people have written. Install one "
         + "in a click; publish your own with a guided export that writes the "
         + "licence and README for you.",
-        "It is the only feature that uses the network, so it ships off. Nothing "
-        + "is ever uploaded without you doing it deliberately.",
+        "It is off until you turn it on. Weather and optional AI companions also "
+        + "use the network only after you configure them. Nothing is uploaded "
+        + "without you doing it deliberately.",
       ],
       module: null,
       actions: [
@@ -2567,6 +2591,24 @@ function tourSteps(plugin) {
         { label: "Modules", run: () => plugin.openSettings("Modules") },
         { label: "Experience", run: () => plugin.openSettings("Experience") },
       ],
+    },
+    {
+      chapter: "Make it yours",
+      title: "What runs automatically",
+      body: [
+        "The base dashboards do not run background jobs. After you install a "
+        + "companion, its behavior is explicit: the Reminders scheduler runs "
+        + "every ten minutes; iMessage capture and sent-mail completion run "
+        + "inside that sync when enabled.",
+        "Mail import runs once when desktop Obsidian opens, and you can run "
+        + "Import today's mail again from the command palette. Calendar, "
+        + "Granola, Photos, and scheduled weather refreshes stay opt-in because "
+        + "they need separate permissions, local app setup, or an API key.",
+        "Integration signals say whether a source is fresh, stale, disabled, "
+        + "or has never run. A missing signal is a setup prompt, not evidence "
+        + "that data was imported.",
+      ],
+      action: { label: "Open Modules", run: () => plugin.openSettings("Modules") },
     },
     {
       chapter: "Make it yours",
@@ -4697,6 +4739,11 @@ module.exports = class Uptick extends Plugin {
     this.addCommand({
       id: "open-email-completion-review", name: "Open sent email completion review",
       callback: () => this.openWorkflowView("email-completions", "Email Completion Review"),
+    });
+    this.addCommand({
+      id: "install-native-reminder-tag-shortcut",
+      name: "Install the native Reminders tag Shortcut",
+      callback: () => window.open(NATIVE_TAG_SHORTCUT_URL, "_blank"),
     });
 
     this.addCommand({
@@ -7124,8 +7171,8 @@ function settingsSetup(plugin, root, redraw) {
     ["1", "Run setup above, or point the Paths tab at folders you already use."],
     ["2", "Open Home. Empty cards are normal until there are notes for them."],
     ["3", "Turn off what you do not want under Modules and Layout."],
-    ["4", "The experience layer needs the Python engine on a schedule. Without "
-        + "it every dashboard still works; XP, levels and achievements stay at zero."],
+    ["4", "Run Recalculate when you want core XP, levels, and achievements to "
+        + "catch up. Python is optional and only refreshes certification readiness."],
   ]) {
     const row = el(steps, "div", "lifeos-setupstep");
     el(row, "span", "lifeos-setupstep-n", n);
@@ -7649,6 +7696,19 @@ async function settingsReminders(plugin, root, state) {
     const out = await plugin.runReminderBridge(["--sync"]);
     new Notice((out.stdout || out.stderr || "No sync result").trim().slice(0, 180));
   }, "primary");
+
+  const nativeTags = setSection(root, "Native Apple Reminders tags",
+    "The bridge syncs the portable task fields. This optional Shortcut runs after "
+    + "a successful bridge to apply native Apple Reminders tags, so tags are "
+    + "available in Apple's own tag filters and smart lists.");
+  el(nativeTags, "div", "lifeos-setwarning",
+    "Install the Shortcut once in macOS, then run the public source installer to "
+    + "schedule bridge → tags every ten minutes. The scheduler runs while Obsidian is closed.");
+  const nativeActions = el(nativeTags, "div", "lifeos-setactions");
+  mkBtn(nativeActions, "Install the tag Shortcut",
+    () => window.open(NATIVE_TAG_SHORTCUT_URL, "_blank"), "primary");
+  mkBtn(nativeActions, "Open installation guide",
+    () => window.open("https://github.com/jcranokc/obsidian-uptick-public#native-apple-reminders-tags", "_blank"));
 
   const assistant = setSection(root, "Workflow assistant",
     "Review uncertain routing, Waiting follow-ups, history, and weekly decisions.");

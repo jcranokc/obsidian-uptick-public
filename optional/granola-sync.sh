@@ -6,6 +6,7 @@ set -u
 
 VAULT="${VAULT:?Set VAULT to your vault path}"
 ROOT="$VAULT/4 System/Automation"
+CODEX_BIN="${CODEX_BIN:-$(command -v codex 2>/dev/null || true)}"
 LOG_DIR="$VAULT/4 System/Logs"
 LOCK_DIR="$ROOT/.granola-sync.lock"
 STATE_FILE="$ROOT/granola-sync-state.json"
@@ -51,7 +52,11 @@ if (( last_success > 0 && now_epoch - last_success < MIN_REMOTE_CHECK_SECONDS ))
   exit 0
 fi
 print -r -- "$(date -Iseconds) preflight: remote check eligible" >> "$LOG_FILE"
-if /opt/homebrew/bin/codex exec \
+if [[ -z "$CODEX_BIN" || ! -x "$CODEX_BIN" ]]; then
+  print -r -- "$(date -Iseconds) failed: Codex CLI not found; set CODEX_BIN or add codex to PATH" >> "$LOG_FILE"
+  exit 2
+fi
+if "$CODEX_BIN" exec \
   --cd "$VAULT" \
   --sandbox workspace-write \
   --skip-git-repo-check \
