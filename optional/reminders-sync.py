@@ -31,6 +31,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "enabled": False,
     "inboxList": "Inbox",
     "quickWinsList": "Quick Wins",
+    "quickWinsFilter": {
+        "enabled": True,
+        "durationTags": ["#10min", "#10-minute"],
+        "includePastDue": True,
+        "includeCompleted": False,
+        "excludeLists": ["Waiting", "Repeat"],
+    },
     "waitingList": "Waiting",
     "excludedLists": ["Repeat"],
     "routes": [
@@ -166,9 +173,12 @@ def validate_config(cfg: dict[str, Any]) -> list[str]:
         if tag in seen:
             errors.append(f"Duplicate managed tag: {tag}")
         seen.add(tag)
-    required_lists = ("inboxList", "quickWinsList", "waitingList")
+    required_lists = ("inboxList", "waitingList")
     if cfg.get("enabled") and any(not str(cfg.get(key) or "").strip() for key in required_lists):
-        errors.append("Enabled sync needs Inbox, Quick Wins, and Waiting lists.")
+        errors.append("Enabled sync needs Inbox and Waiting lists.")
+    quick_filter = cfg.get("quickWinsFilter") if isinstance(cfg.get("quickWinsFilter"), dict) else {}
+    if cfg.get("enabled") and not quick_filter.get("enabled", True) and not str(cfg.get("quickWinsList") or "").strip():
+        errors.append("A physical Quick Wins list is required when the derived filter is disabled.")
     configured_names = [target["name"] for target in configured_lists(cfg)]
     if len(configured_names) != len(set(configured_names)):
         errors.append("Synced Reminders list names must be unique.")
@@ -320,6 +330,97 @@ def clean_title(value: str) -> str:
 
 def tag_tokens(value: str) -> list[str]:
     return re.findall(r"(?<!\w)#[\w-]+", value or "")
+
+
+def _normalized_tag(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(value or "").lower().lstrip("#"))
+
+
+def quick_wins_filter(cfg: dict[str, Any]) -> dict[str, Any]:
+    value = cfg.get("quickWinsFilter") if isinstance(cfg.get("quickWinsFilter"), dict) else {}
+    tags = value.get("durationTags")
+    if not isinstance(tags, list) or not tags:
+        tags = [str(cfg.get("tags", {}).get("duration10", "#10min")), "#10-minute"]
+    excludes = value.get("excludeLists")
+    if not isinstance(excludes, list):
+        excludes = []
+    excludes = list(dict.fromkeys(str(item).strip().lower() for item in excludes if str(item).strip()))
+    waiting = str(cfg.get("waitingList") or "Waiting").strip().lower()
+    if waiting and waiting not in excludes:
+        excludes.append(waiting)
+    for item in (cfg.get("excludedLists") or ["Repeat"]):
+        normalized = str(item or "").strip().lower()
+        if normalized and normalized not in excludes:
+            excludes.append(normalized)
+    return {
+        "enabled": bool(value.get("enabled", True)),
+        "durationTags": list(dict.fromkeys(str(item).strip() for item in tags if str(item).strip())),
+        "includePastDue": bool(value.get("includePastDue", True)),
+        "includeCompleted": bool(value.get("includeCompleted", False)),
+        "excludeLists": excludes,
+    }
+
+
+def reminder_local_due_date(reminder: dict[str, Any]) -> dt.date | None:
+    value = reminder.get("dueDate") or reminder.get("due")
+    if not value:
+        return None
+    text = str(value).strip()
+    try:
+        parsed = dt.datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        try:
+            return dt.date.fromisoformat(text[:10])
+        except ValueError:
+            return None
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone()
+    return parsed.date()
+
+
+def has_quick_wins_duration_tag(reminder: dict[str, Any], cfg: dict[str, Any]) -> bool:
+    text = " ".join(str(reminder.get(key) or "") for key in ("title", "notes"))
+    accepted = {_normalized_tag(tag) for tag in quick_wins_filter(cfg)["durationTags"]}
+    tokens = {_normalized_tag(tag) for tag in tag_tokens(text)}
+    if accepted.intersection(tokens):
+        return True
+    # Apple tag entry and human-authored notes sometimes spell the same tag as
+    # "#10-minute" or "#10 min". Match those forms without treating ordinary
+    # numbers such as 100 minutes as a ten-minute tag.
+    return bool(re.search(r"(?<![\w#])#?10\s*-?\s*(?:min(?:ute)?s?)(?!\w)", text, re.I))
+
+
+def is_quick_wins_candidate(reminder: dict[str, Any], cfg: dict[str, Any], today: dt.date | None = None) -> bool:
+    """Return whether a reminder belongs in the derived Quick Wins view.
+
+    This is deliberately a read-only projection. It never changes the
+    reminder's owning Apple list and therefore cannot create duplicate items.
+    """
+    policy = quick_wins_filter(cfg)
+    if not policy["enabled"]:
+        return str(reminder.get("listName") or "").strip().lower() == str(cfg.get("quickWinsList") or "Quick Wins").strip().lower()
+    list_name = str(reminder.get("listName") or "").strip().lower()
+    if list_name in set(policy["excludeLists"]):
+        return False
+    if not policy["includeCompleted"] and bool(reminder.get("isCompleted") or reminder.get("completed")):
+        return False
+    if not has_quick_wins_duration_tag(reminder, cfg):
+        return False
+    due = reminder_local_due_date(reminder)
+    if due is None:
+        return False
+    current = today or dt.date.today()
+    return due <= current if policy["includePastDue"] else due == current
+
+
+def quick_wins_candidates(reminders: list[dict[str, Any]], cfg: dict[str, Any], today: dt.date | None = None) -> list[dict[str, Any]]:
+    """Build a stable, explainable Quick Wins projection from source lists."""
+    candidates = [item for item in reminders if isinstance(item, dict) and is_quick_wins_candidate(item, cfg, today)]
+    return sorted(candidates, key=lambda item: (
+        reminder_local_due_date(item) or dt.date.max,
+        str(item.get("title") or "").lower(),
+        str(item.get("id") or ""),
+    ))
 
 
 def due_from_text(value: str) -> str | None:
@@ -960,7 +1061,9 @@ def main() -> int:
                               "error": permission.get("error") or "Reminders permission is not granted"}))
             return 2
         existing = {str(item.get("name") or item.get("title") or ""): item for item in list_records() if isinstance(item, dict)}
-        names = ["Inbox", "Quick Wins", "Waiting", "Work", "Personal", "House"]
+        names = ["Inbox", "Waiting", "Work", "Personal", "House"]
+        if not quick_wins_filter(cfg)["enabled"]:
+            names.insert(1, "Quick Wins")
         created: list[str] = []
         lists: dict[str, dict[str, Any]] = {}
         for name in names:
@@ -970,7 +1073,9 @@ def main() -> int:
                 if not match.get("error"):
                     created.append(name)
             lists[name] = match if isinstance(match, dict) else {"name": name}
-        print(json.dumps({"ok": True, "created": created, "lists": lists, "dryRun": ns.dry_run}))
+        print(json.dumps({"ok": True, "created": created, "lists": lists,
+                          "quickWins": {"derived": quick_wins_filter(cfg)["enabled"]},
+                          "dryRun": ns.dry_run}))
         return 0
     if ns.restore_deletion:
         print(json.dumps(restore_deletion(vault, cfg, ns.restore_deletion, ns.dry_run)))
@@ -1007,6 +1112,7 @@ def main() -> int:
     prune_tombstones(state)
     snapshot = reminder_snapshot(cfg)
     reminder_rows = snapshot["rows"]
+    derived_quick_wins = quick_wins_candidates(reminder_rows, cfg)
     list_ids = state.setdefault("listIds", {})
     for row in reminder_rows:
         name, list_id = str(row.get("listName") or ""), str(row.get("listID") or row.get("listId") or "")
@@ -1022,6 +1128,13 @@ def main() -> int:
     links = state.setdefault("links", {})
     changed = {"created": 0, "updated": 0, "imported": 0, "completed": 0,
                "moved": 0, "conflicts": 0, "skipped": 0, "errors": 0}
+    changed["quickWins"] = len(derived_quick_wins)
+    state.setdefault("workflow", {})["quickWins"] = {
+        "derived": quick_wins_filter(cfg)["enabled"],
+        "count": len(derived_quick_wins),
+        "updatedAt": now(),
+        "reminderIds": [str(item.get("id")) for item in derived_quick_wins if item.get("id")],
+    }
     flag_updates: dict[str, bool] = {}
     forced_completed: set[str] = set()
     try:

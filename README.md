@@ -349,13 +349,25 @@ permission; Uptick can open the Shortcut link but cannot bypass that consent.
 If the Shortcut is absent, the bridge still runs and the log records that
 native tag application was skipped.
 
-The sync contract is bidirectional for six lists: Inbox, Quick Wins, Waiting,
-Work, Personal, and House. Deleting a linked open Reminder removes its linked
-Markdown task only after all six lists were read successfully; permission or
+The sync contract is bidirectional for Inbox, Waiting, Work, Personal, and
+House, with Quick Wins available as a derived view. Deleting a linked open Reminder removes its linked
+Markdown task only after all configured source lists were read successfully; permission or
 partial-read failures fail closed. A private 30-day tombstone prevents
 resurrection and can be restored from **Sync activity**. Completed Markdown
 history is preserved, and tasks with manual child content are held for review.
 Repeat is never imported, edited, deleted, or native-tagged by Uptick.
+
+Quick Wins mirrors the behavior of an Apple Smart List without moving or
+duplicating reminders. A reminder remains in its source list and appears in the
+derived Quick Wins view when it has `#10min` or `#10-minute`, a due date of today
+or earlier (including overdue items), and is not in Waiting or Repeat. Removing
+the tag, changing the due date, completing the reminder, or moving it to an
+excluded list removes it from the derived view on the next sync. The optional
+physical `Quick Wins` list is not required for this filter and is never used as
+a deletion signal. The bridge evaluates the portable tag mirror in Reminder
+notes because `remindctl` cannot read Apple’s native tag fields; the optional
+native-tag Shortcut keeps Apple’s Smart List display aligned after a successful
+bridge run.
 
 ### Routing and optional workflow tools
 

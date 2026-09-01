@@ -92,7 +92,15 @@ const DEFAULTS = {
     enabled: false,
     preset: "custom",
     inboxList: "",
+    quickWinsList: "Quick Wins",
     waitingList: "",
+    quickWinsFilter: {
+      enabled: true,
+      durationTags: ["#10min", "#10-minute"],
+      includePastDue: true,
+      includeCompleted: false,
+      excludeLists: ["Waiting", "Repeat"],
+    },
     routes: [
       { tag: "#work", list: "Work", listId: "" },
       { tag: "#personal", list: "Personal", listId: "" },
@@ -7607,7 +7615,7 @@ async function settingsReminders(plugin, root, state) {
   setReminderList(intro, "reminders.inboxList", "Inbox list",
     "New or uncertain tasks remain here until you classify them.", "Inbox");
   setReminderList(intro, "reminders.quickWinsList", "Quick Wins list",
-    "Short actionable reminders stay here and retain #quick-win and #10min.", "Quick Wins");
+    "Derived view: source reminders stay in their original list and appear here when tagged #10min or #10-minute, due today or overdue, and not in Waiting or Repeat.", "Quick Wins");
   setReminderList(intro, "reminders.waitingList", "Waiting list",
     "Blocked and dependency tasks are routed here.", "Waiting");
   el(intro, "div", "lifeos-setwarning", "Synced lists: Inbox, Quick Wins, Waiting, Work, Personal, and House. Repeat remains Apple-only and is never imported, edited, tagged, or deletion-scanned.");
@@ -7686,8 +7694,8 @@ async function settingsReminders(plugin, root, state) {
 
   const actions = setSection(root, "Actions", "Run these manually while setting up or diagnosing the integration.");
   mkBtn(actions, "Use recommended setup", async () => {
-    const sure = await prompt(plugin.app, { title: "Create the recommended lists?",
-      help: "Existing exact-name lists are reused. Missing lists are created; nothing is deleted or renamed.",
+    const sure = await prompt(plugin.app, { title: "Prepare the recommended lists?",
+      help: "Existing exact-name lists are reused. Missing source lists are created; derived Quick Wins does not move or duplicate reminders.",
       placeholder: "SETUP", cta: "Create / reuse" });
     if (String(sure).trim().toUpperCase() !== "SETUP") return;
     const out = await plugin.runReminderBridge(["--setup-recommended"]);

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import datetime as dt
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -98,6 +99,25 @@ no_due = mod.projection_from_reminder({"id": "r-2", "title": "No date", "listNam
 check("missing reminder date stays missing", no_due["due"] is None and no_due["reminderDue"] is None)
 quick = mod.projection_from_reminder({"id": "r-3", "title": "Quick item", "listName": "Quick Wins", "notes": ""}, cfg)
 check("Quick Wins gets quick-win and ten-minute tags", "#quick-win" in quick["tags"] and "#10min" in quick["tags"])
+
+quick_rows = [
+    {"id": "qw-work", "title": "Review release", "notes": "#10min", "dueDate": "2026-08-31T17:00:00", "listName": "Work", "isCompleted": False},
+    {"id": "qw-inbox", "title": "Triage quick task", "notes": "#10-minute", "dueDate": "2026-09-01", "listName": "Inbox", "isCompleted": False},
+    {"id": "qw-wait", "title": "Blocked quick task", "notes": "#10min", "dueDate": "2026-08-30", "listName": "Waiting", "isCompleted": False},
+    {"id": "qw-future", "title": "Future quick task", "notes": "#10min", "dueDate": "2026-09-02", "listName": "Personal", "isCompleted": False},
+    {"id": "qw-none", "title": "Undated quick task", "notes": "#10min", "listName": "House", "isCompleted": False},
+    {"id": "qw-done", "title": "Completed quick task", "notes": "#10min", "dueDate": "2026-09-01", "listName": "House", "isCompleted": True},
+]
+quick_candidates = mod.quick_wins_candidates(quick_rows, cfg, dt.date(2026, 9, 1))
+check("derived Quick Wins includes due-today and overdue source reminders",
+      [row["id"] for row in quick_candidates] == ["qw-work", "qw-inbox"])
+check("derived Quick Wins excludes Waiting, future, undated, and completed reminders",
+      all(row["id"] not in {"qw-wait", "qw-future", "qw-none", "qw-done"} for row in quick_candidates))
+check("derived Quick Wins preserves source-list ownership",
+      {row["id"]: row["listName"] for row in quick_candidates} == {"qw-work": "Work", "qw-inbox": "Inbox"})
+check("Quick Wins filter can be disabled for a physical list",
+      mod.is_quick_wins_candidate({"id": "physical", "title": "Manual", "listName": "Quick Wins"},
+                                  mod.merge(cfg, {"quickWinsFilter": {"enabled": False}}), dt.date(2026, 9, 1)))
 
 mail_cfg = mod.merge(cfg, {"mail": {"enabled": True}})
 mail_task = {**task, "url": "message://%3CExample|Inbox|1%3E"}
