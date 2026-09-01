@@ -1006,13 +1006,6 @@ def main() -> int:
     state = load_state(vault, cfg)
     prune_tombstones(state)
     snapshot = reminder_snapshot(cfg)
-    if not snapshot["complete"]:
-        # A missing/failed list must never look like an empty source. Refuse
-        # all reconciliation writes until the six-list read is healthy.
-        print(json.dumps({"ok": True, "skipped": True, "reason": "authoritative list read incomplete",
-                          "failedLists": snapshot["failed"], "dryRun": ns.dry_run,
-                          "messageTaskCapture": message_task_capture, "emailCompletion": email_completion}))
-        return 0
     reminder_rows = snapshot["rows"]
     list_ids = state.setdefault("listIds", {})
     for row in reminder_rows:
@@ -1293,7 +1286,8 @@ def main() -> int:
                  conflicts=changed["conflicts"], skipped=changed["skipped"],
                  errors=changed["errors"])
         save_state(vault, cfg, state)
-    print(json.dumps({"ok": True, "dryRun": ns.dry_run, **changed,
+    print(json.dumps({"ok": True, "dryRun": ns.dry_run, "partial": bool(snapshot["failed"]),
+                      "failedLists": snapshot["failed"], **changed,
                       "messageTaskCapture": message_task_capture,
                       "emailCompletion": email_completion, "taskFile": str(task_file)}))
     return 0
